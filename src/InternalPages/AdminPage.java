@@ -371,6 +371,7 @@ public class AdminPage extends InternalPageFrame {
         mainPanel.add(HEADER, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 800, 30));
 
         EditUserPanel.setBackground(new java.awt.Color(102, 102, 102));
+        EditUserPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         EditUserText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         EditUserText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -394,6 +395,7 @@ public class AdminPage extends InternalPageFrame {
         mainPanel.add(EditUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, -1, 30));
 
         AddUserPanel.setBackground(new java.awt.Color(102, 102, 102));
+        AddUserPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         AddUserText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         AddUserText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -417,6 +419,7 @@ public class AdminPage extends InternalPageFrame {
         mainPanel.add(AddUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, 110, -1));
 
         RemoveUserPanel.setBackground(new java.awt.Color(102, 102, 102));
+        RemoveUserPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         RemoveUserText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         RemoveUserText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);

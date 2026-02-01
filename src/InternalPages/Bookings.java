@@ -276,6 +276,7 @@ public class Bookings extends InternalPageFrame {
         mainPanel.add(HEADER, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 800, 30));
 
         EditPanel.setBackground(new java.awt.Color(102, 102, 102));
+        EditPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         EditText.setBackground(new java.awt.Color(153, 153, 153));
         EditText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -300,6 +301,7 @@ public class Bookings extends InternalPageFrame {
         mainPanel.add(EditPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, -1, 30));
 
         DeletePanel.setBackground(new java.awt.Color(102, 102, 102));
+        DeletePanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         DeleteText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         DeleteText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -323,6 +325,7 @@ public class Bookings extends InternalPageFrame {
         mainPanel.add(DeletePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, 110, -1));
 
         UpStatusPanel.setBackground(new java.awt.Color(102, 102, 102));
+        UpStatusPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         UpStatusText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         UpStatusText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);

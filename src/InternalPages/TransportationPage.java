@@ -344,6 +344,7 @@ public class TransportationPage extends InternalPageFrame {
         mainPanel.add(HEADER, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 800, 30));
 
         EditPanel.setBackground(new java.awt.Color(102, 102, 102));
+        EditPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         EditText.setBackground(new java.awt.Color(153, 153, 153));
         EditText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -368,6 +369,7 @@ public class TransportationPage extends InternalPageFrame {
         mainPanel.add(EditPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, -1, 30));
 
         BookTransPanel.setBackground(new java.awt.Color(102, 102, 102));
+        BookTransPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         BookTransText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         BookTransText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -391,6 +393,7 @@ public class TransportationPage extends InternalPageFrame {
         mainPanel.add(BookTransPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, 110, -1));
 
         AddTransportationPanel.setBackground(new java.awt.Color(102, 102, 102));
+        AddTransportationPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         AddTransText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         AddTransText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -414,6 +417,7 @@ public class TransportationPage extends InternalPageFrame {
         mainPanel.add(AddTransportationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 50, -1, -1));
 
         RemoveTransportationPanel.setBackground(new java.awt.Color(102, 102, 102));
+        RemoveTransportationPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         RemoveTransportationText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         RemoveTransportationText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);

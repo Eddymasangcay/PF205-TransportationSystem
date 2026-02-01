@@ -185,6 +185,7 @@ public class RegisterFrame extends javax.swing.JFrame {
         jPanel3.add(PasswordField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 260, 230, -1));
 
         LoginBtnPanel.setBackground(new java.awt.Color(204, 204, 204));
+        LoginBtnPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         LoginText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         LoginText.setText("REGISTER");
@@ -194,11 +195,11 @@ public class RegisterFrame extends javax.swing.JFrame {
         LoginBtnPanel.setLayout(LoginBtnPanelLayout);
         LoginBtnPanelLayout.setHorizontalGroup(
             LoginBtnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(LoginText, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
+            .addComponent(LoginText, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
         );
         LoginBtnPanelLayout.setVerticalGroup(
             LoginBtnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(LoginText, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+            .addComponent(LoginText, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
         );
 
         jPanel3.add(LoginBtnPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 320, 180, 40));

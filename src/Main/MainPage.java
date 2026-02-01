@@ -94,12 +94,15 @@ public class MainPage extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         MainPanel.setBackground(new java.awt.Color(255, 255, 255));
+        MainPanel.setBorder(new javax.swing.border.MatteBorder(null));
         MainPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        DashPanel.setBackground(new java.awt.Color(153, 153, 153));
+        DashPanel.setBackground(new java.awt.Color(102, 102, 102));
+        DashPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         DashPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         TRANSPORTATION.setBackground(new java.awt.Color(102, 102, 102));
+        TRANSPORTATION.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         jLabel4.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -109,16 +112,17 @@ public class MainPage extends javax.swing.JFrame {
         TRANSPORTATION.setLayout(TRANSPORTATIONLayout);
         TRANSPORTATIONLayout.setHorizontalGroup(
             TRANSPORTATIONLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
         );
         TRANSPORTATIONLayout.setVerticalGroup(
             TRANSPORTATIONLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
         );
 
         DashPanel.add(TRANSPORTATION, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 20, 120, 40));
 
         BOOKINGS.setBackground(new java.awt.Color(102, 102, 102));
+        BOOKINGS.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         jLabel5.setBackground(new java.awt.Color(153, 153, 153));
         jLabel5.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -129,16 +133,17 @@ public class MainPage extends javax.swing.JFrame {
         BOOKINGS.setLayout(BOOKINGSLayout);
         BOOKINGSLayout.setHorizontalGroup(
             BOOKINGSLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
         );
         BOOKINGSLayout.setVerticalGroup(
             BOOKINGSLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
         );
 
         DashPanel.add(BOOKINGS, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 20, 120, 40));
 
         jPanel9.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel9.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -148,11 +153,11 @@ public class MainPage extends javax.swing.JFrame {
         jPanel9.setLayout(jPanel9Layout);
         jPanel9Layout.setHorizontalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
         );
         jPanel9Layout.setVerticalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
         );
 
         DashPanel.add(jPanel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 20, 120, 40));
