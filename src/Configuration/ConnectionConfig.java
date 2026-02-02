@@ -78,15 +78,19 @@ public class ConnectionConfig {
             );
             st.execute(
                 "CREATE TABLE IF NOT EXISTS receipts ("
-                + "r_id INTEGER PRIMARY KEY, "
+                + "r_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "u_id INTEGER REFERENCES users (u_id), "
                 + "username TEXT, "
-                + "b_id INTEGER REFERENCES bookings (b_id), "
+                + "b_id INTEGER UNIQUE REFERENCES bookings (b_id), "
                 + "origin TEXT, "
                 + "destination TEXT, "
                 + "seat TEXT, "
-                + "date TEXT)"
+                + "price INTEGER DEFAULT 0, "
+                + "date TEXT, "
+                + "created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
             );
+            ensureColumn(st, "receipts", "price", "INTEGER DEFAULT 0");
+            ensureColumn(st, "receipts", "created_at", "TEXT DEFAULT CURRENT_TIMESTAMP");
             // Reset sequences to default values when tables are empty
             resetSequenceIfEmpty(st, "users", "u_id", DEFAULT_USER_ID);
             resetSequenceIfEmpty(st, "routes", "v_id", DEFAULT_VEHICLE_ID);
