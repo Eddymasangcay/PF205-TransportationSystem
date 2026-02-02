@@ -1,8 +1,11 @@
 package Main;
 
-import InternalPages.AdminPage;
-import InternalPages.Bookings;
-import InternalPages.TransportationPage;
+import AdminInternalPages.AdminSettings;
+import AdminInternalPages.Bookings;
+import AdminInternalPages.TransportationPage;
+import UserInternalPages.UserBookings;
+import UserInternalPages.UserSettings;
+import UserInternalPages.UserTransportationPage;
 import java.awt.Cursor;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -12,12 +15,18 @@ import javax.swing.JInternalFrame;
 import java.awt.Color;
 
 public class MainPage extends javax.swing.JFrame {
-    
+
+    private final boolean isAdmin;
+    private final int currentUserId;
+
     Color navcolor = new Color(204,204,255);
     Color bodycolor = new Color(153,153,255);
     Color staycolor = new Color(153,153,255);
-    
-    public MainPage() {
+
+    /** Admin dashboard (Transportation, Bookings, Settings). */
+    public MainPage(boolean isAdmin, int currentUserId) {
+        this.isAdmin = isAdmin;
+        this.currentUserId = currentUserId;
         initComponents();
         setupPanelListeners();
         setupDesktopResizeListener();
@@ -49,7 +58,11 @@ public class MainPage extends javax.swing.JFrame {
         TRANSPORTATION.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                openInternalFrame(new TransportationPage());
+                if (isAdmin) {
+                    openInternalFrame(new TransportationPage());
+                } else {
+                    openInternalFrame(new UserTransportationPage(currentUserId));
+                }
             }
         });
 
@@ -57,7 +70,11 @@ public class MainPage extends javax.swing.JFrame {
         BOOKINGS.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                openInternalFrame(new Bookings());
+                if (isAdmin) {
+                    openInternalFrame(new Bookings());
+                } else {
+                    openInternalFrame(new UserBookings(currentUserId));
+                }
             }
         });
 
@@ -65,7 +82,11 @@ public class MainPage extends javax.swing.JFrame {
         SETTINGS.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                openInternalFrame(new AdminPage());
+                if (isAdmin) {
+                    openInternalFrame(new AdminSettings());
+                } else {
+                    openInternalFrame(new UserSettings(currentUserId));
+                }
             }
         });
 
@@ -382,7 +403,7 @@ public class MainPage extends javax.swing.JFrame {
         } catch (Exception ex) {
             java.util.logging.Logger.getLogger(MainPage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        java.awt.EventQueue.invokeLater(() -> new MainPage().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new MainPage(true, 1).setVisible(true));
     }
 
     private void performLogout() {

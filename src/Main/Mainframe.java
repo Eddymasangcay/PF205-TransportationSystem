@@ -43,8 +43,12 @@ public class Mainframe extends javax.swing.JFrame {
     }
 
     private void performLogin() {
-        String username = UsernameField.getText().trim();
-        String password = PasswordField.getText().trim();
+        String username = UsernameField.getText();
+        String password = PasswordField.getText();
+        if (username != null) username = username.trim();
+        else username = "";
+        if (password != null) password = password.trim();
+        else password = "";
         if (username.isEmpty() || password.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this,
                 "Please enter username and password.",
@@ -55,8 +59,10 @@ public class Mainframe extends javax.swing.JFrame {
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
+            int userId = -1;
+            String uType = "user";
             try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT u_id, password FROM users WHERE username = ?")) {
+                    "SELECT u_id, password, COALESCE(u_type, 'user') AS u_type FROM users WHERE username = ?")) {
                 ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (!rs.next()) {
@@ -74,10 +80,15 @@ public class Mainframe extends javax.swing.JFrame {
                             javax.swing.JOptionPane.WARNING_MESSAGE);
                         return;
                     }
+                    userId = rs.getInt("u_id");
+                    uType = rs.getString("u_type");
+                    if (uType == null) uType = "user";
                 }
             }
+            final boolean isAdmin = "admin".equalsIgnoreCase(uType.trim());
+            final int uid = userId;
             dispose();
-            MainPage mainPage = new MainPage();
+            MainPage mainPage = new MainPage(isAdmin, uid);
             mainPage.setLocationRelativeTo(null);
             mainPage.setVisible(true);
         } catch (SQLException e) {

@@ -47,19 +47,23 @@ public class ConnectionConfig {
             st.execute(
                 "CREATE TABLE IF NOT EXISTS users ("
                 + "u_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "u_type TEXT, "
                 + "username TEXT NOT NULL UNIQUE, "
                 + "email TEXT NOT NULL, "
                 + "name TEXT NOT NULL, "
                 + "password TEXT NOT NULL, "
                 + "created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
             );
+            ensureColumn(st, "users", "u_type", "TEXT DEFAULT 'user'");
             st.execute(
                 "CREATE TABLE IF NOT EXISTS routes ("
                 + "v_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "v_type TEXT, "
+                + "v_price INTEGER, "
                 + "origin TEXT, "
                 + "destination TEXT)"
             );
+            ensureColumn(st, "routes", "v_price", "INTEGER");
             st.execute(
                 "CREATE TABLE IF NOT EXISTS bookings ("
                 + "b_id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -72,7 +76,17 @@ public class ConnectionConfig {
                 + "status TEXT DEFAULT 'Pending', "
                 + "date TEXT DEFAULT CURRENT_TIMESTAMP)"
             );
-            
+            st.execute(
+                "CREATE TABLE IF NOT EXISTS receipts ("
+                + "r_id INTEGER PRIMARY KEY, "
+                + "u_id INTEGER REFERENCES users (u_id), "
+                + "username TEXT, "
+                + "b_id INTEGER REFERENCES bookings (b_id), "
+                + "origin TEXT, "
+                + "destination TEXT, "
+                + "seat TEXT, "
+                + "date TEXT)"
+            );
             // Reset sequences to default values when tables are empty
             resetSequenceIfEmpty(st, "users", "u_id", DEFAULT_USER_ID);
             resetSequenceIfEmpty(st, "routes", "v_id", DEFAULT_VEHICLE_ID);
@@ -80,6 +94,17 @@ public class ConnectionConfig {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database tables.", e);
         }
+    }
+
+    private static void ensureColumn(Statement st, String table, String column, String typeDef) {
+        try (ResultSet rs = st.executeQuery("PRAGMA table_info(" + table + ")")) {
+            while (rs.next()) {
+                if (column.equalsIgnoreCase(rs.getString("name"))) return;
+            }
+        } catch (SQLException e) { return; }
+        try {
+            st.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + typeDef);
+        } catch (SQLException ignored) { }
     }
 
     private static void resetSequenceIfEmpty(Statement st, String tableName, String idColumn, int defaultStartId) throws SQLException {

@@ -17,6 +17,16 @@ public class RegisterFrame extends javax.swing.JFrame {
         setupPanelListeners();
     }
 
+    private static String safeTrim(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    private static boolean isValidEmail(String email) {
+        if (email == null || email.isEmpty()) return false;
+        int at = email.indexOf('@');
+        return at > 0 && at < email.length() - 1 && email.indexOf('.', at) > at + 1;
+    }
+
     private void setupPanelListeners() {
         Cursor handCursor = new Cursor(Cursor.HAND_CURSOR);
 
@@ -30,14 +40,35 @@ public class RegisterFrame extends javax.swing.JFrame {
     }
 
     private void performRegister() {
-        String username = UsernameField.getText().trim();
-        String email = EmailField.getText().trim();
-        String name = NameField.getText().trim();
-        String password = PasswordField.getText().trim();
+        String username = safeTrim(UsernameField.getText());
+        String email = safeTrim(EmailField.getText());
+        String name = safeTrim(NameField.getText());
+        String password = safeTrim(PasswordField.getText());
 
         if (username.isEmpty() || email.isEmpty() || name.isEmpty() || password.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this,
                 "Please fill in all fields.",
+                "Registration",
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (username.length() < 2) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Username must be at least 2 characters.",
+                "Registration",
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (password.length() < 4) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Password must be at least 4 characters.",
+                "Registration",
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!isValidEmail(email)) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Please enter a valid email address.",
                 "Registration",
                 javax.swing.JOptionPane.WARNING_MESSAGE);
             return;
@@ -72,7 +103,7 @@ public class RegisterFrame extends javax.swing.JFrame {
             }
             String hashed = PasswordUtil.hashPassword(password);
             try (PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO users (username, email, name, password) VALUES (?, ?, ?, ?)")) {
+                    "INSERT INTO users (u_type, username, email, name, password) VALUES ('user', ?, ?, ?, ?)")) {
                 ps.setString(1, username);
                 ps.setString(2, email);
                 ps.setString(3, name);
