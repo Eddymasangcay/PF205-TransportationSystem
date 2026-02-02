@@ -1,6 +1,7 @@
 package AdminInternalPages;
 
 import Configuration.ConnectionConfig;
+import Configuration.ReceiptUtil;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.GridLayout;
@@ -312,6 +313,7 @@ public class TransportationPage extends InternalPageFrame {
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
+            int newBookingId = -1;
             try (PreparedStatement ps = conn.prepareStatement("INSERT INTO bookings (passenger, v_type, v_id, route, seat, status) VALUES (?, ?, ?, ?, ?, 'Pending')")) {
                 ps.setString(1, passenger);
                 ps.setString(2, vehicleType);
@@ -320,7 +322,23 @@ public class TransportationPage extends InternalPageFrame {
                 ps.setString(5, seat);
                 ps.executeUpdate();
             }
-            JOptionPane.showMessageDialog(this, "Booking created successfully.", "Book", JOptionPane.INFORMATION_MESSAGE);
+            // Get the newly created booking ID
+            try (PreparedStatement ps = conn.prepareStatement("SELECT MAX(b_id) AS last_id FROM bookings")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        newBookingId = rs.getInt("last_id");
+                    }
+                }
+            }
+            // Create receipt immediately after booking
+            if (newBookingId > 0) {
+                try {
+                    ReceiptUtil.createReceiptForBooking(conn, newBookingId);
+                } catch (SQLException ex) {
+                    System.err.println("Receipt creation warning: " + ex.getMessage());
+                }
+            }
+            JOptionPane.showMessageDialog(this, "Booking created successfully! Receipt generated.", "Book", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to create booking: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
