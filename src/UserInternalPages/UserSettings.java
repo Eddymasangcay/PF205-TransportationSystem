@@ -92,7 +92,7 @@ public class UserSettings extends InternalPageFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(logoutLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
-        mainPanel.add(LogoutPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 50, 90, 30));
+        mainPanel.add(LogoutPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 10, 90, 30));
     }
 
     private void setupPanelListeners() {
@@ -139,6 +139,62 @@ public class UserSettings extends InternalPageFrame {
                 performLogout();
             }
         });
+
+        // Add Edit Profile panel programmatically
+        setupEditProfilePanel(handCursor);
+    }
+
+    private javax.swing.JPanel EditProfilePanel;
+    Color navcolor = new Color(153, 153, 255);
+    Color bodycolor = new Color(204, 204, 255);
+
+    private void setupEditProfilePanel(Cursor handCursor) {
+        EditProfilePanel = new javax.swing.JPanel();
+        EditProfilePanel.setBackground(bodycolor);
+        EditProfilePanel.setCursor(handCursor);
+        
+        javax.swing.JLabel editText = new javax.swing.JLabel("EDIT PROFILE");
+        editText.setFont(new java.awt.Font("Tahoma", 1, 11));
+        
+        javax.swing.JLabel editIcon = new javax.swing.JLabel();
+        editIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        editIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-edit-property-48.png")));
+        
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(EditProfilePanel);
+        EditProfilePanel.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(editIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(editText)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(editIcon, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(editText, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)))
+        );
+        
+        mainPanel.add(EditProfilePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 250, 180, 60));
+        
+        EditProfilePanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                performEditProfile();
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                EditProfilePanel.setBackground(navcolor);
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                EditProfilePanel.setBackground(bodycolor);
+            }
+        });
     }
 
     private void performLogout() {
@@ -152,7 +208,36 @@ public class UserSettings extends InternalPageFrame {
     }
 
     private void openMyBookings() {
-        JOptionPane.showMessageDialog(this, "Use the BOOKINGS item in the menu to view your bookings.", "My Bookings", JOptionPane.INFORMATION_MESSAGE);
+        Connection conn = null;
+        try {
+            conn = ConnectionConfig.getConnection();
+            javax.swing.table.DefaultTableModel tm = new javax.swing.table.DefaultTableModel(
+                    new String[]{"Booking ID", "Route", "Seat", "Date", "Status"}, 0);
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT b_id, route, seat, date, status FROM bookings WHERE passenger_id = ? ORDER BY b_id DESC")) {
+                ps.setInt(1, currentUserId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        tm.addRow(new Object[]{
+                                rs.getInt("b_id"),
+                                nullToEmpty(rs.getString("route")),
+                                nullToEmpty(rs.getString("seat")),
+                                nullToEmpty(rs.getString("date")),
+                                nullToEmpty(rs.getString("status"))
+                        });
+                    }
+                }
+            }
+            javax.swing.JTable table = new javax.swing.JTable(tm);
+            table.setEnabled(false);
+            javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(table);
+            scroll.setPreferredSize(new java.awt.Dimension(500, 300));
+            JOptionPane.showMessageDialog(this, scroll, "My Booking History", JOptionPane.PLAIN_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to load booking history: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            ConnectionConfig.close(conn);
+        }
     }
 
     private void performViewReceipts() {
@@ -586,7 +671,7 @@ public class UserSettings extends InternalPageFrame {
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Logo with Blue and Grey Color Theme.png"))); // NOI18N
-        mainPanel.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 250, 150, 140));
+        mainPanel.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 330, 150, 80));
 
         javax.swing.GroupLayout jDesktopPane1Layout = new javax.swing.GroupLayout(jDesktopPane1);
         jDesktopPane1.setLayout(jDesktopPane1Layout);

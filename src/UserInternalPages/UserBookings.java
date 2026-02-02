@@ -100,7 +100,7 @@ public class UserBookings extends InternalPageFrame {
         EditPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                performEdit();
+                performViewDetails();
             }
         });
 
@@ -108,79 +108,90 @@ public class UserBookings extends InternalPageFrame {
         DeletePanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                performDelete();
+                performCancelBooking();
             }
         });
     }
 
-    private void performEdit() {
+    private void performViewDetails() {
         int row = jTableBookings.getSelectedRow();
         if (row < 0 || row >= tableModel.getRowCount()) {
-            JOptionPane.showMessageDialog(this, "Please select a booking to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a booking to view.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        JTextField passengerField = new JTextField(String.valueOf(tableModel.getValueAt(row, 1)), 20);
-        JTextField routeField = new JTextField(String.valueOf(tableModel.getValueAt(row, 2)), 20);
-        JTextField dateField = new JTextField(String.valueOf(tableModel.getValueAt(row, 3)), 20);
-        JTextField seatField = new JTextField(String.valueOf(tableModel.getValueAt(row, 4)), 10);
-        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
-        panel.add(new javax.swing.JLabel("Passenger:"));
-        panel.add(passengerField);
-        panel.add(new javax.swing.JLabel("Route:"));
-        panel.add(routeField);
-        panel.add(new javax.swing.JLabel("Date:"));
-        panel.add(dateField);
-        panel.add(new javax.swing.JLabel("Seat:"));
-        panel.add(seatField);
-        if (JOptionPane.showConfirmDialog(this, panel, "Edit Booking", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION) {
-            String passenger = passengerField.getText().trim();
-            String route = routeField.getText().trim();
-            String date = dateField.getText().trim();
-            String seat = seatField.getText().trim();
-            if (passenger.isEmpty() || route.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Passenger and route are required.", "Edit Booking", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            int id = (Integer) tableModel.getValueAt(row, 0);
-            Connection conn = null;
-            try {
-                conn = ConnectionConfig.getConnection();
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE bookings SET passenger = ?, route = ?, date = ?, seat = ? WHERE b_id = ?")) {
-                    ps.setString(1, passenger);
-                    ps.setString(2, route);
-                    ps.setString(3, date);
-                    ps.setString(4, seat);
-                    ps.setInt(5, id);
-                    ps.executeUpdate();
+        int bookingId = (Integer) tableModel.getValueAt(row, 0);
+        Connection conn = null;
+        try {
+            conn = ConnectionConfig.getConnection();
+            String passenger = "", route = "", date = "", seat = "", status = "", vehicleType = "";
+            int price = 0;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT b.passenger, b.route, b.date, b.seat, b.status, b.v_type, COALESCE(r.v_price, 0) AS price " +
+                    "FROM bookings b LEFT JOIN routes r ON b.v_id = r.v_id WHERE b.b_id = ?")) {
+                ps.setInt(1, bookingId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        passenger = nullToEmpty(rs.getString("passenger"));
+                        route = nullToEmpty(rs.getString("route"));
+                        date = nullToEmpty(rs.getString("date"));
+                        seat = nullToEmpty(rs.getString("seat"));
+                        status = nullToEmpty(rs.getString("status"));
+                        vehicleType = nullToEmpty(rs.getString("v_type"));
+                        price = rs.getInt("price");
+                    }
                 }
-                loadBookingsFromDb(null);
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Failed to update: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            } finally {
-                ConnectionConfig.close(conn);
             }
+            JPanel panel = new JPanel(new GridLayout(7, 2, 5, 5));
+            panel.add(new javax.swing.JLabel("Booking ID:"));
+            panel.add(new javax.swing.JLabel(String.valueOf(bookingId)));
+            panel.add(new javax.swing.JLabel("Passenger:"));
+            panel.add(new javax.swing.JLabel(passenger));
+            panel.add(new javax.swing.JLabel("Vehicle Type:"));
+            panel.add(new javax.swing.JLabel(vehicleType));
+            panel.add(new javax.swing.JLabel("Route:"));
+            panel.add(new javax.swing.JLabel(route));
+            panel.add(new javax.swing.JLabel("Seat:"));
+            panel.add(new javax.swing.JLabel(seat.isEmpty() ? "N/A" : seat));
+            panel.add(new javax.swing.JLabel("Price:"));
+            panel.add(new javax.swing.JLabel(price + ""));
+            panel.add(new javax.swing.JLabel("Status:"));
+            panel.add(new javax.swing.JLabel(status));
+            JOptionPane.showMessageDialog(this, panel, "Booking Details", JOptionPane.PLAIN_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to load booking details: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            ConnectionConfig.close(conn);
         }
     }
 
-    private void performDelete() {
+    private static String nullToEmpty(String s) {
+        return s == null ? "" : s;
+    }
+
+    private void performCancelBooking() {
         int row = jTableBookings.getSelectedRow();
         if (row < 0 || row >= tableModel.getRowCount()) {
-            JOptionPane.showMessageDialog(this, "Please select a booking to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a booking to cancel.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (JOptionPane.showConfirmDialog(this, "Delete this booking?", "Confirm Delete", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        String status = String.valueOf(tableModel.getValueAt(row, 5));
+        if ("Arrived".equalsIgnoreCase(status) || "Cancelled".equalsIgnoreCase(status)) {
+            JOptionPane.showMessageDialog(this, "This booking cannot be cancelled (status: " + status + ").", "Cancel Booking", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (JOptionPane.showConfirmDialog(this, "Cancel this booking?", "Confirm Cancel", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             int id = (Integer) tableModel.getValueAt(row, 0);
             Connection conn = null;
             try {
                 conn = ConnectionConfig.getConnection();
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM bookings WHERE b_id = ?")) {
+                try (PreparedStatement ps = conn.prepareStatement("UPDATE bookings SET status = 'Cancelled' WHERE b_id = ?")) {
                     ps.setInt(1, id);
                     ps.executeUpdate();
                 }
+                JOptionPane.showMessageDialog(this, "Booking cancelled successfully.", "Cancel Booking", JOptionPane.INFORMATION_MESSAGE);
                 loadBookingsFromDb(null);
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Failed to delete: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to cancel: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } finally {
                 ConnectionConfig.close(conn);
             }
@@ -232,7 +243,7 @@ public class UserBookings extends InternalPageFrame {
         EditText.setBackground(new java.awt.Color(153, 153, 153));
         EditText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         EditText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        EditText.setText("EDIT");
+        EditText.setText("VIEW");
 
         EditLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         EditLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-edit-property-48.png"))); // NOI18N
@@ -266,7 +277,7 @@ public class UserBookings extends InternalPageFrame {
 
         DeleteText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         DeleteText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        DeleteText.setText("DELETE");
+        DeleteText.setText("CANCEL");
 
         DeleteLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         DeleteLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-remove-48.png"))); // NOI18N
