@@ -3,6 +3,7 @@ package Configuration;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -36,6 +37,11 @@ public class ConnectionConfig {
         return conn;
     }
 
+    // Default starting IDs when tables are empty
+    private static final int DEFAULT_USER_ID = 1;
+    private static final int DEFAULT_VEHICLE_ID = 101;
+    private static final int DEFAULT_BOOKING_ID = 1001;
+
     private static void initDatabase(Connection conn) {
         try (Statement st = conn.createStatement()) {
             st.execute(
@@ -66,8 +72,26 @@ public class ConnectionConfig {
                 + "status TEXT DEFAULT 'Pending', "
                 + "date TEXT DEFAULT CURRENT_TIMESTAMP)"
             );
+            
+            // Reset sequences to default values when tables are empty
+            resetSequenceIfEmpty(st, "users", "u_id", DEFAULT_USER_ID);
+            resetSequenceIfEmpty(st, "routes", "v_id", DEFAULT_VEHICLE_ID);
+            resetSequenceIfEmpty(st, "bookings", "b_id", DEFAULT_BOOKING_ID);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database tables.", e);
+        }
+    }
+
+    private static void resetSequenceIfEmpty(Statement st, String tableName, String idColumn, int defaultStartId) throws SQLException {
+        // Check if the table is empty
+        try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
+            if (rs.next() && rs.getInt(1) == 0) {
+                // Table is empty, reset the sequence to start at defaultStartId
+                // SQLite stores sequence info in sqlite_sequence table
+                // We set seq to (defaultStartId - 1) so the next insert gets defaultStartId
+                st.execute("DELETE FROM sqlite_sequence WHERE name = '" + tableName + "'");
+                st.execute("INSERT INTO sqlite_sequence (name, seq) VALUES ('" + tableName + "', " + (defaultStartId - 1) + ")");
+            }
         }
     }
 
