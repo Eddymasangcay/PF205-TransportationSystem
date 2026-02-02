@@ -1,6 +1,8 @@
 package Main;
 
 import Configuration.ConnectionConfig;
+import Configuration.PasswordUtil;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -10,7 +12,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Mainframe extends javax.swing.JFrame {
-
+        
+    Color navcolor = new Color(153,153,255);
+    Color bodycolor = new Color(255,255,255);
+    Color staycolor = new Color(153,153,255);
+    
     public Mainframe() {
         initComponents();
         setupPanelListeners();
@@ -50,11 +56,18 @@ public class Mainframe extends javax.swing.JFrame {
         try {
             conn = ConnectionConfig.getConnection();
             try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT u_id FROM users WHERE username = ? AND password = ?")) {
+                    "SELECT u_id, password FROM users WHERE username = ?")) {
                 ps.setString(1, username);
-                ps.setString(2, password);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (!rs.next()) {
+                        javax.swing.JOptionPane.showMessageDialog(this,
+                            "Invalid username or password.",
+                            "Login Failed",
+                            javax.swing.JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    String storedHash = rs.getString("password");
+                    if (!PasswordUtil.verifyPassword(password, storedHash)) {
                         javax.swing.JOptionPane.showMessageDialog(this,
                             "Invalid username or password.",
                             "Login Failed",
@@ -97,47 +110,55 @@ public class Mainframe extends javax.swing.JFrame {
         LoginBtnPanel = new javax.swing.JPanel();
         LoginText = new javax.swing.JLabel();
         RegisterPanel = new javax.swing.JPanel();
-        RegisterText = new javax.swing.JLabel();
-        Extra = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
         Welcoming = new javax.swing.JLabel();
+        Extra = new javax.swing.JLabel();
         Logo = new javax.swing.JLabel();
-        Background = new javax.swing.JLabel();
+        background = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(840, 430));
 
-        MainFrame.setBackground(new java.awt.Color(102, 102, 102));
+        MainFrame.setBackground(new java.awt.Color(204, 204, 255));
         MainFrame.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel3.setBackground(new java.awt.Color(153, 153, 153));
+        jPanel3.setBackground(new java.awt.Color(153, 153, 255));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        UsernameText.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        UsernameText.setForeground(new java.awt.Color(255, 255, 255));
         UsernameText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         UsernameText.setText("USERNAME");
-        jPanel3.add(UsernameText, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 140, 170, 20));
+        jPanel3.add(UsernameText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 90, 420, 20));
 
+        UsernameField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         UsernameField.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         UsernameField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 UsernameFieldActionPerformed(evt);
             }
         });
-        jPanel3.add(UsernameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 160, 170, -1));
+        jPanel3.add(UsernameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 120, 300, 30));
 
+        PasswordText.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        PasswordText.setForeground(new java.awt.Color(255, 255, 255));
         PasswordText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         PasswordText.setText("PASSWORD");
-        jPanel3.add(PasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 190, 170, 20));
+        jPanel3.add(PasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 180, 420, 20));
 
+        PasswordField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         PasswordField.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         PasswordField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PasswordFieldActionPerformed(evt);
             }
         });
-        jPanel3.add(PasswordField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 210, 170, -1));
+        jPanel3.add(PasswordField, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 210, 300, 30));
 
         LoginBtnPanel.setBackground(new java.awt.Color(204, 204, 204));
         LoginBtnPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
+        LoginText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         LoginText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         LoginText.setText("LOGIN");
         LoginText.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -146,64 +167,70 @@ public class Mainframe extends javax.swing.JFrame {
         LoginBtnPanel.setLayout(LoginBtnPanelLayout);
         LoginBtnPanelLayout.setHorizontalGroup(
             LoginBtnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(LoginText, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, LoginBtnPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(LoginText, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         LoginBtnPanelLayout.setVerticalGroup(
             LoginBtnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(LoginText, javax.swing.GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, LoginBtnPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(LoginText, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jPanel3.add(LoginBtnPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 250, 130, 30));
+        jPanel3.add(LoginBtnPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 260, 130, 30));
 
-        RegisterPanel.setBackground(new java.awt.Color(153, 153, 153));
+        RegisterPanel.setBackground(new java.awt.Color(153, 153, 255));
 
-        RegisterText.setBackground(new java.awt.Color(153, 153, 153));
-        RegisterText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        RegisterText.setText("Register Now!");
+        jLabel1.setFont(new java.awt.Font("Bahnschrift", 1, 14)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("REGISTER");
 
         javax.swing.GroupLayout RegisterPanelLayout = new javax.swing.GroupLayout(RegisterPanel);
         RegisterPanel.setLayout(RegisterPanelLayout);
         RegisterPanelLayout.setHorizontalGroup(
             RegisterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(RegisterText, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
+            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
         );
         RegisterPanelLayout.setVerticalGroup(
             RegisterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, RegisterPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(RegisterText, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
         );
 
-        jPanel3.add(RegisterPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 310, 310, 20));
+        jPanel3.add(RegisterPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 330, 420, 40));
 
+        Welcoming.setBackground(new java.awt.Color(255, 255, 255));
+        Welcoming.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        Welcoming.setForeground(new java.awt.Color(255, 255, 255));
+        Welcoming.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Welcoming.setText("Welcome to United Transportation System!");
+        jPanel3.add(Welcoming, new org.netbeans.lib.awtextra.AbsoluteConstraints(-1, 30, 420, -1));
+
+        Extra.setBackground(new java.awt.Color(255, 255, 255));
+        Extra.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        Extra.setForeground(new java.awt.Color(255, 255, 255));
         Extra.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Extra.setText("Doesn't have an account? ");
-        jPanel3.add(Extra, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 290, 180, -1));
+        jPanel3.add(Extra, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 310, 180, -1));
 
-        Welcoming.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
-        Welcoming.setText("Welcome to United Transportation System!");
-        jPanel3.add(Welcoming, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, -1, -1));
-
-        MainFrame.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 0, 310, 420));
+        MainFrame.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 0, 420, 430));
 
         Logo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Logo with Blue and Grey Color Theme.png"))); // NOI18N
-        MainFrame.add(Logo, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 70, -1, -1));
+        MainFrame.add(Logo, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 0, -1, 430));
 
-        Background.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Copy of Welcome to United Transporat.png"))); // NOI18N
-        Background.setText("jLabel3");
-        MainFrame.add(Background, new org.netbeans.lib.awtextra.AbsoluteConstraints(-20, 70, 380, 420));
+        background.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/BACKGROUND.png"))); // NOI18N
+        MainFrame.add(background, new org.netbeans.lib.awtextra.AbsoluteConstraints(-110, -30, 560, 500));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(MainFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(MainFrame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(MainFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(MainFrame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
@@ -236,7 +263,6 @@ public class Mainframe extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel Background;
     private javax.swing.JLabel Extra;
     private javax.swing.JPanel LoginBtnPanel;
     private javax.swing.JLabel LoginText;
@@ -245,10 +271,11 @@ public class Mainframe extends javax.swing.JFrame {
     private javax.swing.JTextField PasswordField;
     private javax.swing.JLabel PasswordText;
     private javax.swing.JPanel RegisterPanel;
-    private javax.swing.JLabel RegisterText;
     private javax.swing.JTextField UsernameField;
     private javax.swing.JLabel UsernameText;
     private javax.swing.JLabel Welcoming;
+    private javax.swing.JLabel background;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
 }

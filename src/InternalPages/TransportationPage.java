@@ -1,6 +1,7 @@
 package InternalPages;
 
 import Configuration.ConnectionConfig;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
@@ -19,6 +20,10 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 public class TransportationPage extends InternalPageFrame {
+    
+    Color navcolor = new Color(153,153,255);
+    Color bodycolor = new Color(204,204,255);
+    Color staycolor = new Color(204,204,255);
 
     private final DefaultTableModel tableModel;
     private final List<Integer> routeIds = new ArrayList<>();
@@ -99,7 +104,7 @@ public class TransportationPage extends InternalPageFrame {
         EditPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                performEditRoute();
+                EditRoute();
             }
         });
 
@@ -107,7 +112,7 @@ public class TransportationPage extends InternalPageFrame {
         BookTransPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                performBook();
+                Book();
             }
         });
 
@@ -115,7 +120,7 @@ public class TransportationPage extends InternalPageFrame {
         AddTransportationPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                performAddRoute();
+                AddRoute();
             }
         });
 
@@ -130,14 +135,14 @@ public class TransportationPage extends InternalPageFrame {
 
     private void performRemoveRoute() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= routeIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a transportation to remove.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
         if (JOptionPane.showConfirmDialog(this, "Remove this transportation?", "Confirm Remove", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
             return;
         }
-        int vId = routeIds.get(row);
+        int vId = (Integer) tableModel.getValueAt(row, 0);
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
@@ -145,8 +150,7 @@ public class TransportationPage extends InternalPageFrame {
                 ps.setInt(1, vId);
                 ps.executeUpdate();
             }
-            routeIds.remove(row);
-            tableModel.removeRow(row);
+            loadRoutesFromDb(null);
             JOptionPane.showMessageDialog(this, "Transportation removed.", "Remove", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to remove: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -155,7 +159,7 @@ public class TransportationPage extends InternalPageFrame {
         }
     }
 
-    private void performAddRoute() {
+    private void AddRoute() {
         JTextField vehicleTypeField = new JTextField(20);
         JTextField originField = new JTextField(20);
         JTextField destField = new JTextField(20);
@@ -194,9 +198,9 @@ public class TransportationPage extends InternalPageFrame {
         }
     }
 
-    private void performEditRoute() {
+    private void EditRoute() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= routeIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a transportation to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -220,7 +224,7 @@ public class TransportationPage extends InternalPageFrame {
             JOptionPane.showMessageDialog(this, "All fields are required.", "Edit Transportation", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int vId = routeIds.get(row);
+        int vId = (Integer) tableModel.getValueAt(row, 0);
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
@@ -231,9 +235,7 @@ public class TransportationPage extends InternalPageFrame {
                 ps.setInt(4, vId);
                 ps.executeUpdate();
             }
-            tableModel.setValueAt(vehicleType, row, 1);
-            tableModel.setValueAt(origin, row, 2);
-            tableModel.setValueAt(dest, row, 3);
+            loadRoutesFromDb(null);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to update: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
@@ -241,9 +243,9 @@ public class TransportationPage extends InternalPageFrame {
         }
     }
 
-    private void performBook() {
+    private void Book() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= routeIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a transportation to book.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -266,7 +268,7 @@ public class TransportationPage extends InternalPageFrame {
             return;
         }
         String seat = seatField.getText().trim();
-        int vId = routeIds.get(row);
+        int vId = (Integer) tableModel.getValueAt(row, 0);
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
@@ -289,23 +291,25 @@ public class TransportationPage extends InternalPageFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         mainPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTableBookings = new javax.swing.JTable();
-        HEADER = new javax.swing.JPanel();
-        HEADERTEXT = new javax.swing.JLabel();
         EditPanel = new javax.swing.JPanel();
-        EditText = new javax.swing.JLabel();
-        BookTransPanel = new javax.swing.JPanel();
-        BookTransText = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
         AddTransportationPanel = new javax.swing.JPanel();
         AddTransText = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
         RemoveTransportationPanel = new javax.swing.JPanel();
         RemoveTransportationText = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
         Search = new javax.swing.JTextField();
+        BookTransPanel = new javax.swing.JPanel();
+        BookTransText = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        SearchSep = new javax.swing.JSeparator();
 
-        mainPanel.setBackground(new java.awt.Color(153, 153, 153));
+        mainPanel.setBackground(new java.awt.Color(204, 204, 255));
         mainPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         javax.swing.GroupLayout jScrollPane1Layout = new javax.swing.GroupLayout(jScrollPane1.getViewport());
@@ -319,147 +323,170 @@ public class TransportationPage extends InternalPageFrame {
             .addComponent(jTableBookings, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 780, 360));
+        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 50, 680, 320));
 
-        HEADER.setBackground(new java.awt.Color(102, 102, 102));
+        EditPanel.setBackground(new java.awt.Color(204, 204, 255));
+        EditPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                EditPanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                EditPanelMouseExited(evt);
+            }
+        });
 
-        HEADERTEXT.setBackground(new java.awt.Color(102, 102, 102));
-        HEADERTEXT.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        HEADERTEXT.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        HEADERTEXT.setText("TRANSPORTATION");
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-edit-property-48.png"))); // NOI18N
 
-        javax.swing.GroupLayout HEADERLayout = new javax.swing.GroupLayout(HEADER);
-        HEADER.setLayout(HEADERLayout);
-        HEADERLayout.setHorizontalGroup(
-            HEADERLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(HEADERTEXT, javax.swing.GroupLayout.DEFAULT_SIZE, 800, Short.MAX_VALUE)
-        );
-        HEADERLayout.setVerticalGroup(
-            HEADERLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(HEADERLayout.createSequentialGroup()
-                .addComponent(HEADERTEXT, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-
-        mainPanel.add(HEADER, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 800, 30));
-
-        EditPanel.setBackground(new java.awt.Color(102, 102, 102));
-        EditPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        EditText.setBackground(new java.awt.Color(153, 153, 153));
-        EditText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        EditText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        EditText.setText("EDIT");
+        jLabel2.setFont(new java.awt.Font("Bahnschrift", 1, 11)); // NOI18N
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setText("EDIT");
 
         javax.swing.GroupLayout EditPanelLayout = new javax.swing.GroupLayout(EditPanel);
         EditPanel.setLayout(EditPanelLayout);
         EditPanelLayout.setHorizontalGroup(
             EditPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EditPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(EditText, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         EditPanelLayout.setVerticalGroup(
             EditPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EditPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(EditText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(EditPanelLayout.createSequentialGroup()
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        mainPanel.add(EditPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, -1, 30));
+        mainPanel.add(EditPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 80, 80));
 
-        BookTransPanel.setBackground(new java.awt.Color(102, 102, 102));
-        BookTransPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        AddTransportationPanel.setBackground(new java.awt.Color(204, 204, 255));
+        AddTransportationPanel.setPreferredSize(new java.awt.Dimension(80, 80));
+        AddTransportationPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AddTransportationPanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AddTransportationPanelMouseExited(evt);
+            }
+        });
 
-        BookTransText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        BookTransText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        BookTransText.setText("BOOK");
-
-        javax.swing.GroupLayout BookTransPanelLayout = new javax.swing.GroupLayout(BookTransPanel);
-        BookTransPanel.setLayout(BookTransPanelLayout);
-        BookTransPanelLayout.setHorizontalGroup(
-            BookTransPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, BookTransPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(BookTransText, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        BookTransPanelLayout.setVerticalGroup(
-            BookTransPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, BookTransPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(BookTransText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        mainPanel.add(BookTransPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, 110, -1));
-
-        AddTransportationPanel.setBackground(new java.awt.Color(102, 102, 102));
-        AddTransportationPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        AddTransText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        AddTransText.setFont(new java.awt.Font("Bahnschrift", 1, 11)); // NOI18N
         AddTransText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         AddTransText.setText("ADD");
+
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-add-properties-48.png"))); // NOI18N
 
         javax.swing.GroupLayout AddTransportationPanelLayout = new javax.swing.GroupLayout(AddTransportationPanel);
         AddTransportationPanel.setLayout(AddTransportationPanelLayout);
         AddTransportationPanelLayout.setHorizontalGroup(
             AddTransportationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, AddTransportationPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(AddTransText, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(AddTransText, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
         );
         AddTransportationPanelLayout.setVerticalGroup(
             AddTransportationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, AddTransportationPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(AddTransText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        mainPanel.add(AddTransportationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 50, -1, -1));
+        mainPanel.add(AddTransportationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, -1, -1));
 
-        RemoveTransportationPanel.setBackground(new java.awt.Color(102, 102, 102));
-        RemoveTransportationPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        RemoveTransportationPanel.setBackground(new java.awt.Color(204, 204, 255));
+        RemoveTransportationPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                RemoveTransportationPanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                RemoveTransportationPanelMouseExited(evt);
+            }
+        });
 
-        RemoveTransportationText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        RemoveTransportationText.setFont(new java.awt.Font("Bahnschrift", 1, 11)); // NOI18N
         RemoveTransportationText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         RemoveTransportationText.setText("REMOVE");
+
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-remove-48.png"))); // NOI18N
 
         javax.swing.GroupLayout RemoveTransportationPanelLayout = new javax.swing.GroupLayout(RemoveTransportationPanel);
         RemoveTransportationPanel.setLayout(RemoveTransportationPanelLayout);
         RemoveTransportationPanelLayout.setHorizontalGroup(
             RemoveTransportationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, RemoveTransportationPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(RemoveTransportationText, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(RemoveTransportationText, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         RemoveTransportationPanelLayout.setVerticalGroup(
             RemoveTransportationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, RemoveTransportationPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(RemoveTransportationText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        mainPanel.add(RemoveTransportationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 50, -1, -1));
+        mainPanel.add(RemoveTransportationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 280, 80, 80));
 
+        Search.setBackground(new java.awt.Color(204, 204, 255));
+        Search.setForeground(new java.awt.Color(255, 255, 255));
+        Search.setText("Enter Transportation ID to search");
+        Search.setBorder(null);
         Search.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 SearchActionPerformed(evt);
             }
         });
-        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 50, 200, 30));
+        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 10, 660, 30));
+
+        BookTransPanel.setBackground(new java.awt.Color(204, 204, 255));
+        BookTransPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                BookTransPanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                BookTransPanelMouseExited(evt);
+            }
+        });
+
+        BookTransText.setBackground(new java.awt.Color(204, 204, 255));
+        BookTransText.setFont(new java.awt.Font("Bahnschrift", 1, 11)); // NOI18N
+        BookTransText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        BookTransText.setText("BOOK");
+
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-booking-48.png"))); // NOI18N
+
+        javax.swing.GroupLayout BookTransPanelLayout = new javax.swing.GroupLayout(BookTransPanel);
+        BookTransPanel.setLayout(BookTransPanelLayout);
+        BookTransPanelLayout.setHorizontalGroup(
+            BookTransPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(BookTransPanelLayout.createSequentialGroup()
+                .addGroup(BookTransPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
+                    .addComponent(BookTransText, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 2, Short.MAX_VALUE))
+        );
+        BookTransPanelLayout.setVerticalGroup(
+            BookTransPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, BookTransPanelLayout.createSequentialGroup()
+                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(BookTransText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        mainPanel.add(BookTransPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 80, 80));
+        mainPanel.add(SearchSep, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 40, 670, 10));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(mainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 800, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(mainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 470, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(mainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 415, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
@@ -469,18 +496,53 @@ public class TransportationPage extends InternalPageFrame {
         performSearchByID();
     }//GEN-LAST:event_SearchActionPerformed
 
+    private void EditPanelMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_EditPanelMouseEntered
+        EditPanel.setBackground(navcolor);
+    }//GEN-LAST:event_EditPanelMouseEntered
+
+    private void EditPanelMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_EditPanelMouseExited
+        EditPanel.setBackground(bodycolor);
+    }//GEN-LAST:event_EditPanelMouseExited
+
+    private void AddTransportationPanelMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AddTransportationPanelMouseEntered
+        AddTransportationPanel.setBackground(navcolor);
+    }//GEN-LAST:event_AddTransportationPanelMouseEntered
+
+    private void AddTransportationPanelMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AddTransportationPanelMouseExited
+        AddTransportationPanel.setBackground(bodycolor);
+    }//GEN-LAST:event_AddTransportationPanelMouseExited
+
+    private void RemoveTransportationPanelMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_RemoveTransportationPanelMouseEntered
+        RemoveTransportationPanel.setBackground(navcolor);
+    }//GEN-LAST:event_RemoveTransportationPanelMouseEntered
+
+    private void RemoveTransportationPanelMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_RemoveTransportationPanelMouseExited
+        RemoveTransportationPanel.setBackground(bodycolor);
+    }//GEN-LAST:event_RemoveTransportationPanelMouseExited
+
+    private void BookTransPanelMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BookTransPanelMouseEntered
+        BookTransPanel.setBackground(navcolor);
+    }//GEN-LAST:event_BookTransPanelMouseEntered
+
+    private void BookTransPanelMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BookTransPanelMouseExited
+        BookTransPanel.setBackground(bodycolor);
+    }//GEN-LAST:event_BookTransPanelMouseExited
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel AddTransText;
     private javax.swing.JPanel AddTransportationPanel;
     private javax.swing.JPanel BookTransPanel;
     private javax.swing.JLabel BookTransText;
     private javax.swing.JPanel EditPanel;
-    private javax.swing.JLabel EditText;
-    private javax.swing.JPanel HEADER;
-    private javax.swing.JLabel HEADERTEXT;
     private javax.swing.JPanel RemoveTransportationPanel;
     private javax.swing.JLabel RemoveTransportationText;
     private javax.swing.JTextField Search;
+    private javax.swing.JSeparator SearchSep;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTableBookings;
     private javax.swing.JPanel mainPanel;

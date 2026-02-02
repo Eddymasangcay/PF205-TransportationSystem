@@ -1,6 +1,7 @@
 package Main;
 
 import Configuration.ConnectionConfig;
+import Configuration.PasswordUtil;
 import java.awt.Cursor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -69,12 +70,13 @@ public class RegisterFrame extends javax.swing.JFrame {
                     }
                 }
             }
+            String hashed = PasswordUtil.hashPassword(password);
             try (PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO users (username, email, name, password) VALUES (?, ?, ?, ?)")) {
                 ps.setString(1, username);
                 ps.setString(2, email);
                 ps.setString(3, name);
-                ps.setString(4, password);
+                ps.setString(4, hashed);
                 ps.executeUpdate();
             }
             javax.swing.JOptionPane.showMessageDialog(this,
@@ -114,79 +116,111 @@ public class RegisterFrame extends javax.swing.JFrame {
         PasswordField = new javax.swing.JTextField();
         LoginBtnPanel = new javax.swing.JPanel();
         LoginText = new javax.swing.JLabel();
+        UsernameSep = new javax.swing.JSeparator();
+        EmailSep = new javax.swing.JSeparator();
+        NameSeo = new javax.swing.JSeparator();
+        PasswordSep = new javax.swing.JSeparator();
         Logo = new javax.swing.JLabel();
-        Background = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        MainFrame.setBackground(new java.awt.Color(102, 102, 102));
+        MainFrame.setBackground(new java.awt.Color(204, 204, 255));
         MainFrame.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel3.setBackground(new java.awt.Color(153, 153, 153));
+        jPanel3.setBackground(new java.awt.Color(153, 153, 255));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        Welcoming.setBackground(new java.awt.Color(255, 255, 255));
         Welcoming.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        Welcoming.setForeground(new java.awt.Color(255, 255, 255));
         Welcoming.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Welcoming.setText("Welcome to United Transportation System!");
-        jPanel3.add(Welcoming, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 310, -1));
+        jPanel3.add(Welcoming, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 430, -1));
 
         Welcoming1.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        Welcoming1.setForeground(new java.awt.Color(255, 255, 255));
         Welcoming1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Welcoming1.setText("Please fill out the form to complete");
-        jPanel3.add(Welcoming1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 70, 310, -1));
+        jPanel3.add(Welcoming1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 70, 430, -1));
 
         Welcoming2.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        Welcoming2.setForeground(new java.awt.Color(255, 255, 255));
         Welcoming2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Welcoming2.setText("Registration, Thank you!");
-        jPanel3.add(Welcoming2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 90, 310, -1));
+        jPanel3.add(Welcoming2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 90, 430, -1));
 
+        EnterUsernameText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        EnterUsernameText.setForeground(new java.awt.Color(255, 255, 255));
         EnterUsernameText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         EnterUsernameText.setText("USERNAME");
-        jPanel3.add(EnterUsernameText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 140, 70, 20));
+        jPanel3.add(EnterUsernameText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 120, 430, 20));
 
+        UsernameField.setBackground(new java.awt.Color(153, 153, 255));
+        UsernameField.setForeground(new java.awt.Color(255, 255, 255));
+        UsernameField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        UsernameField.setBorder(null);
+        UsernameField.setCaretColor(new java.awt.Color(255, 255, 255));
         UsernameField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 UsernameFieldActionPerformed(evt);
             }
         });
-        jPanel3.add(UsernameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 140, 230, -1));
+        jPanel3.add(UsernameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 140, 240, 20));
 
+        EnterEmailText.setBackground(new java.awt.Color(255, 255, 255));
+        EnterEmailText.setForeground(new java.awt.Color(255, 255, 255));
         EnterEmailText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         EnterEmailText.setText("EMAIL");
-        jPanel3.add(EnterEmailText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 180, 70, 20));
+        jPanel3.add(EnterEmailText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 170, 430, 20));
 
+        EmailField.setBackground(new java.awt.Color(153, 153, 255));
+        EmailField.setForeground(new java.awt.Color(255, 255, 255));
+        EmailField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        EmailField.setBorder(null);
         EmailField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 EmailFieldActionPerformed(evt);
             }
         });
-        jPanel3.add(EmailField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 180, 230, -1));
+        jPanel3.add(EmailField, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 190, 240, 20));
 
+        EnterNameTest.setForeground(new java.awt.Color(255, 255, 255));
         EnterNameTest.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         EnterNameTest.setText("NAME");
-        jPanel3.add(EnterNameTest, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 220, 70, 20));
+        jPanel3.add(EnterNameTest, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 220, 430, 20));
 
+        NameField.setBackground(new java.awt.Color(153, 153, 255));
+        NameField.setForeground(new java.awt.Color(255, 255, 255));
+        NameField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        NameField.setBorder(null);
         NameField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 NameFieldActionPerformed(evt);
             }
         });
-        jPanel3.add(NameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 220, 230, -1));
+        jPanel3.add(NameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 240, 240, 20));
 
+        EnterPasswordText.setForeground(new java.awt.Color(255, 255, 255));
         EnterPasswordText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         EnterPasswordText.setText("PASSWORD");
-        jPanel3.add(EnterPasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 260, 70, 20));
+        jPanel3.add(EnterPasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 270, 430, 20));
 
+        PasswordField.setBackground(new java.awt.Color(153, 153, 255));
+        PasswordField.setForeground(new java.awt.Color(255, 255, 255));
+        PasswordField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        PasswordField.setBorder(null);
         PasswordField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PasswordFieldActionPerformed(evt);
             }
         });
-        jPanel3.add(PasswordField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 260, 230, -1));
+        jPanel3.add(PasswordField, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 290, 240, 20));
 
-        LoginBtnPanel.setBackground(new java.awt.Color(204, 204, 204));
-        LoginBtnPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        LoginBtnPanel.setBackground(new java.awt.Color(204, 204, 255));
 
+        LoginText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        LoginText.setForeground(new java.awt.Color(255, 255, 255));
         LoginText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         LoginText.setText("REGISTER");
         LoginText.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -195,34 +229,48 @@ public class RegisterFrame extends javax.swing.JFrame {
         LoginBtnPanel.setLayout(LoginBtnPanelLayout);
         LoginBtnPanelLayout.setHorizontalGroup(
             LoginBtnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(LoginText, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
+            .addComponent(LoginText, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
         );
         LoginBtnPanelLayout.setVerticalGroup(
             LoginBtnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(LoginText, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
+            .addComponent(LoginText, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
         );
 
-        jPanel3.add(LoginBtnPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 320, 180, 40));
+        jPanel3.add(LoginBtnPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 340, 180, 40));
 
-        MainFrame.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 0, 310, 420));
+        UsernameSep.setForeground(new java.awt.Color(255, 255, 255));
+        jPanel3.add(UsernameSep, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 240, 10));
+
+        EmailSep.setForeground(new java.awt.Color(255, 255, 255));
+        jPanel3.add(EmailSep, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 210, 240, -1));
+
+        NameSeo.setForeground(new java.awt.Color(255, 255, 255));
+        jPanel3.add(NameSeo, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 260, 240, 10));
+
+        PasswordSep.setForeground(new java.awt.Color(255, 255, 255));
+        PasswordSep.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jPanel3.add(PasswordSep, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 310, 240, 10));
+
+        MainFrame.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 0, 430, 500));
 
         Logo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Logo with Blue and Grey Color Theme.png"))); // NOI18N
-        MainFrame.add(Logo, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 70, -1, -1));
+        MainFrame.add(Logo, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 0, 250, 430));
 
-        Background.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Copy of Welcome to United Transporat.png"))); // NOI18N
-        Background.setText("jLabel3");
-        MainFrame.add(Background, new org.netbeans.lib.awtextra.AbsoluteConstraints(-20, 70, 380, 420));
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/BACKGROUND.png"))); // NOI18N
+        MainFrame.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(-110, -30, 550, 530));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(MainFrame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(MainFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 840, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(MainFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(MainFrame, javax.swing.GroupLayout.PREFERRED_SIZE, 500, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
@@ -256,8 +304,8 @@ public class RegisterFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel Background;
     private javax.swing.JTextField EmailField;
+    private javax.swing.JSeparator EmailSep;
     private javax.swing.JLabel EnterEmailText;
     private javax.swing.JLabel EnterNameTest;
     private javax.swing.JLabel EnterPasswordText;
@@ -267,11 +315,15 @@ public class RegisterFrame extends javax.swing.JFrame {
     private javax.swing.JLabel Logo;
     private javax.swing.JPanel MainFrame;
     private javax.swing.JTextField NameField;
+    private javax.swing.JSeparator NameSeo;
     private javax.swing.JTextField PasswordField;
+    private javax.swing.JSeparator PasswordSep;
     private javax.swing.JTextField UsernameField;
+    private javax.swing.JSeparator UsernameSep;
     private javax.swing.JLabel Welcoming;
     private javax.swing.JLabel Welcoming1;
     private javax.swing.JLabel Welcoming2;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
 }

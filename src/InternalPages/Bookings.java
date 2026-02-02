@@ -1,6 +1,7 @@
 package InternalPages;
 
 import Configuration.ConnectionConfig;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
@@ -19,7 +20,11 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 public class Bookings extends InternalPageFrame {
-
+    
+    Color navcolor = new Color(153,153,255);
+    Color bodycolor = new Color(204,204,255);
+    Color staycolor = new Color(204,204,255);
+    
     private final DefaultTableModel tableModel;
     private final List<Integer> bookingIds = new ArrayList<>();
     private static final String[] STATUS_OPTIONS = {"In-Transit", "Stopped", "Arrived"};
@@ -116,7 +121,7 @@ public class Bookings extends InternalPageFrame {
 
     private void performEdit() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= bookingIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a booking to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -142,7 +147,7 @@ public class Bookings extends InternalPageFrame {
                 JOptionPane.showMessageDialog(this, "Passenger and route are required.", "Edit Booking", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            int id = bookingIds.get(row);
+            int id = (Integer) tableModel.getValueAt(row, 0);
             Connection conn = null;
             try {
                 conn = ConnectionConfig.getConnection();
@@ -155,10 +160,7 @@ public class Bookings extends InternalPageFrame {
                     ps.setInt(5, id);
                     ps.executeUpdate();
                 }
-                tableModel.setValueAt(passenger, row, 1);
-                tableModel.setValueAt(route, row, 2);
-                tableModel.setValueAt(date, row, 3);
-                tableModel.setValueAt(seat, row, 4);
+                loadBookingsFromDb(null);
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Failed to update: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } finally {
@@ -169,12 +171,12 @@ public class Bookings extends InternalPageFrame {
 
     private void performDelete() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= bookingIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a booking to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
         if (JOptionPane.showConfirmDialog(this, "Delete this booking?", "Confirm Delete", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            int id = bookingIds.get(row);
+            int id = (Integer) tableModel.getValueAt(row, 0);
             Connection conn = null;
             try {
                 conn = ConnectionConfig.getConnection();
@@ -182,8 +184,7 @@ public class Bookings extends InternalPageFrame {
                     ps.setInt(1, id);
                     ps.executeUpdate();
                 }
-                bookingIds.remove(row);
-                tableModel.removeRow(row);
+                loadBookingsFromDb(null);
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Failed to delete: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } finally {
@@ -194,7 +195,7 @@ public class Bookings extends InternalPageFrame {
 
     private void performUpdateStatus() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= bookingIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a booking to update status.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -202,7 +203,7 @@ public class Bookings extends InternalPageFrame {
         String current = (v != null) ? v.toString() : "";
         String status = (String) JOptionPane.showInputDialog(this, "Select status:", "Update Status", JOptionPane.PLAIN_MESSAGE, null, STATUS_OPTIONS, current);
         if (status != null) {
-            int id = bookingIds.get(row);
+            int id = (Integer) tableModel.getValueAt(row, 0);
             Connection conn = null;
             try {
                 conn = ConnectionConfig.getConnection();
@@ -211,7 +212,7 @@ public class Bookings extends InternalPageFrame {
                     ps.setInt(2, id);
                     ps.executeUpdate();
                 }
-                tableModel.setValueAt(status, row, 5);
+                loadBookingsFromDb(null);
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Failed to update status: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } finally {
@@ -227,17 +228,19 @@ public class Bookings extends InternalPageFrame {
         mainPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTableBookings = new javax.swing.JTable();
-        HEADER = new javax.swing.JPanel();
-        HEADERTEXT = new javax.swing.JLabel();
         EditPanel = new javax.swing.JPanel();
         EditText = new javax.swing.JLabel();
+        EditLogo = new javax.swing.JLabel();
         DeletePanel = new javax.swing.JPanel();
         DeleteText = new javax.swing.JLabel();
+        DeleteLogo = new javax.swing.JLabel();
         UpStatusPanel = new javax.swing.JPanel();
         UpStatusText = new javax.swing.JLabel();
+        UpdateLogo = new javax.swing.JLabel();
         Search = new javax.swing.JTextField();
+        jSeparator1 = new javax.swing.JSeparator();
 
-        mainPanel.setBackground(new java.awt.Color(153, 153, 153));
+        mainPanel.setBackground(new java.awt.Color(204, 204, 255));
         mainPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         javax.swing.GroupLayout jScrollPane1Layout = new javax.swing.GroupLayout(jScrollPane1.getViewport());
@@ -251,85 +254,93 @@ public class Bookings extends InternalPageFrame {
             .addComponent(jTableBookings, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 780, 360));
+        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 50, 680, 320));
 
-        HEADER.setBackground(new java.awt.Color(102, 102, 102));
-
-        HEADERTEXT.setBackground(new java.awt.Color(102, 102, 102));
-        HEADERTEXT.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        HEADERTEXT.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        HEADERTEXT.setText("BOOKINGS");
-
-        javax.swing.GroupLayout HEADERLayout = new javax.swing.GroupLayout(HEADER);
-        HEADER.setLayout(HEADERLayout);
-        HEADERLayout.setHorizontalGroup(
-            HEADERLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(HEADERTEXT, javax.swing.GroupLayout.DEFAULT_SIZE, 800, Short.MAX_VALUE)
-        );
-        HEADERLayout.setVerticalGroup(
-            HEADERLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(HEADERLayout.createSequentialGroup()
-                .addComponent(HEADERTEXT, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-
-        mainPanel.add(HEADER, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 800, 30));
-
-        EditPanel.setBackground(new java.awt.Color(102, 102, 102));
-        EditPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        EditPanel.setBackground(new java.awt.Color(204, 204, 255));
+        EditPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                EditPanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                EditPanelMouseExited(evt);
+            }
+        });
 
         EditText.setBackground(new java.awt.Color(153, 153, 153));
         EditText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         EditText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         EditText.setText("EDIT");
 
+        EditLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        EditLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-edit-property-48.png"))); // NOI18N
+
         javax.swing.GroupLayout EditPanelLayout = new javax.swing.GroupLayout(EditPanel);
         EditPanel.setLayout(EditPanelLayout);
         EditPanelLayout.setHorizontalGroup(
             EditPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EditPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(EditText, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(EditText, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(EditLogo, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
         );
         EditPanelLayout.setVerticalGroup(
             EditPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EditPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(EditText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(EditLogo, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(EditText))
         );
 
-        mainPanel.add(EditPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, -1, 30));
+        mainPanel.add(EditPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 80, 70));
 
-        DeletePanel.setBackground(new java.awt.Color(102, 102, 102));
-        DeletePanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        DeletePanel.setBackground(new java.awt.Color(204, 204, 255));
+        DeletePanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                DeletePanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                DeletePanelMouseExited(evt);
+            }
+        });
 
         DeleteText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         DeleteText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         DeleteText.setText("DELETE");
 
+        DeleteLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        DeleteLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-remove-48.png"))); // NOI18N
+
         javax.swing.GroupLayout DeletePanelLayout = new javax.swing.GroupLayout(DeletePanel);
         DeletePanel.setLayout(DeletePanelLayout);
         DeletePanelLayout.setHorizontalGroup(
             DeletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, DeletePanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(DeleteText, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(DeleteText, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(DeleteLogo, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
         );
         DeletePanelLayout.setVerticalGroup(
             DeletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, DeletePanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(DeleteText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(DeleteLogo, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(DeleteText))
         );
 
-        mainPanel.add(DeletePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, 110, -1));
+        mainPanel.add(DeletePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, 80, 70));
 
-        UpStatusPanel.setBackground(new java.awt.Color(102, 102, 102));
-        UpStatusPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        UpStatusPanel.setBackground(new java.awt.Color(204, 204, 255));
+        UpStatusPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                UpStatusPanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                UpStatusPanelMouseExited(evt);
+            }
+        });
 
         UpStatusText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         UpStatusText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        UpStatusText.setText("UPDATE STATUS");
+        UpStatusText.setText("UPDATE");
+
+        UpdateLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        UpdateLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-installing-updates-48.png"))); // NOI18N
 
         javax.swing.GroupLayout UpStatusPanelLayout = new javax.swing.GroupLayout(UpStatusPanel);
         UpStatusPanel.setLayout(UpStatusPanelLayout);
@@ -337,23 +348,32 @@ public class Bookings extends InternalPageFrame {
             UpStatusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UpStatusPanelLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(UpStatusText, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(UpStatusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(UpdateLogo, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+                    .addComponent(UpStatusText, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         UpStatusPanelLayout.setVerticalGroup(
             UpStatusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UpStatusPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(UpStatusText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(UpdateLogo, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(UpStatusText))
         );
 
-        mainPanel.add(UpStatusPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 50, -1, -1));
+        mainPanel.add(UpStatusPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 170, 80, 70));
 
+        Search.setBackground(new java.awt.Color(204, 204, 255));
+        Search.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        Search.setForeground(new java.awt.Color(255, 255, 255));
+        Search.setText("Enter Vehicle Type to search");
+        Search.setBorder(null);
         Search.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 SearchActionPerformed(evt);
             }
         });
-        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 50, 200, 30));
+        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 10, 660, 30));
+        mainPanel.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 40, 670, 10));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -365,9 +385,7 @@ public class Bookings extends InternalPageFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(mainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 470, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(mainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 415, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
@@ -380,17 +398,43 @@ public class Bookings extends InternalPageFrame {
         performSearchByVehicleType();
     }//GEN-LAST:event_SearchActionPerformed
 
+    private void EditPanelMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_EditPanelMouseEntered
+        EditPanel.setBackground(navcolor);
+    }//GEN-LAST:event_EditPanelMouseEntered
+
+    private void EditPanelMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_EditPanelMouseExited
+        EditPanel.setBackground(bodycolor);
+    }//GEN-LAST:event_EditPanelMouseExited
+
+    private void DeletePanelMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_DeletePanelMouseEntered
+        DeletePanel.setBackground(navcolor);
+    }//GEN-LAST:event_DeletePanelMouseEntered
+
+    private void DeletePanelMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_DeletePanelMouseExited
+        DeletePanel.setBackground(bodycolor);
+    }//GEN-LAST:event_DeletePanelMouseExited
+
+    private void UpStatusPanelMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_UpStatusPanelMouseEntered
+        UpStatusPanel.setBackground(navcolor);
+    }//GEN-LAST:event_UpStatusPanelMouseEntered
+
+    private void UpStatusPanelMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_UpStatusPanelMouseExited
+        UpStatusPanel.setBackground(bodycolor);
+    }//GEN-LAST:event_UpStatusPanelMouseExited
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel DeleteLogo;
     private javax.swing.JPanel DeletePanel;
     private javax.swing.JLabel DeleteText;
+    private javax.swing.JLabel EditLogo;
     private javax.swing.JPanel EditPanel;
     private javax.swing.JLabel EditText;
-    private javax.swing.JPanel HEADER;
-    private javax.swing.JLabel HEADERTEXT;
     private javax.swing.JTextField Search;
     private javax.swing.JPanel UpStatusPanel;
     private javax.swing.JLabel UpStatusText;
+    private javax.swing.JLabel UpdateLogo;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable jTableBookings;
     private javax.swing.JPanel mainPanel;
     // End of variables declaration//GEN-END:variables

@@ -1,6 +1,7 @@
 package InternalPages;
 
 import Configuration.ConnectionConfig;
+import Configuration.PasswordUtil;
 import Main.Mainframe;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -200,11 +201,20 @@ public class AdminPage extends InternalPageFrame {
                     }
                 }
             }
+            try (PreparedStatement checkEmail = conn.prepareStatement("SELECT u_id FROM users WHERE email = ?")) {
+                checkEmail.setString(1, email);
+                try (ResultSet rs = checkEmail.executeQuery()) {
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(this, "Email already registered.", "Add User", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                }
+            }
             try (PreparedStatement ps = conn.prepareStatement("INSERT INTO users (username, email, name, password) VALUES (?, ?, ?, ?)")) {
                 ps.setString(1, username);
                 ps.setString(2, email);
                 ps.setString(3, name);
-                ps.setString(4, password);
+                ps.setString(4, PasswordUtil.hashPassword(password));
                 ps.executeUpdate();
             }
             JOptionPane.showMessageDialog(this, "User added successfully.", "Add User", JOptionPane.INFORMATION_MESSAGE);
@@ -218,7 +228,7 @@ public class AdminPage extends InternalPageFrame {
 
     private void performEditUser() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= userIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a user to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -247,7 +257,7 @@ public class AdminPage extends InternalPageFrame {
             JOptionPane.showMessageDialog(this, "Username, email and name are required.", "Edit User", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int id = userIds.get(row);
+        int id = (Integer) tableModel.getValueAt(row, 0);
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
@@ -261,12 +271,22 @@ public class AdminPage extends InternalPageFrame {
                     }
                 }
             }
+            try (PreparedStatement checkEmail = conn.prepareStatement("SELECT u_id FROM users WHERE email = ? AND u_id != ?")) {
+                checkEmail.setString(1, email);
+                checkEmail.setInt(2, id);
+                try (ResultSet rs = checkEmail.executeQuery()) {
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(this, "Email already registered. Choose another.", "Edit User", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                }
+            }
             if (!newPassword.isEmpty()) {
                 try (PreparedStatement ps = conn.prepareStatement("UPDATE users SET username = ?, email = ?, name = ?, password = ? WHERE u_id = ?")) {
                     ps.setString(1, username);
                     ps.setString(2, email);
                     ps.setString(3, name);
-                    ps.setString(4, newPassword);
+                    ps.setString(4, PasswordUtil.hashPassword(newPassword));
                     ps.setInt(5, id);
                     ps.executeUpdate();
                 }
@@ -279,9 +299,7 @@ public class AdminPage extends InternalPageFrame {
                     ps.executeUpdate();
                 }
             }
-            tableModel.setValueAt(username, row, 1);
-            tableModel.setValueAt(email, row, 2);
-            tableModel.setValueAt(name, row, 3);
+            loadUsersFromDb(null);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to update user: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
@@ -291,14 +309,14 @@ public class AdminPage extends InternalPageFrame {
 
     private void performDeleteUser() {
         int row = jTableBookings.getSelectedRow();
-        if (row < 0 || row >= userIds.size()) {
+        if (row < 0 || row >= tableModel.getRowCount()) {
             JOptionPane.showMessageDialog(this, "Please select a user to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
         if (JOptionPane.showConfirmDialog(this, "Delete this user?", "Confirm Delete", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
             return;
         }
-        int id = userIds.get(row);
+        int id = (Integer) tableModel.getValueAt(row, 0);
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
@@ -306,8 +324,7 @@ public class AdminPage extends InternalPageFrame {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
-            userIds.remove(row);
-            tableModel.removeRow(row);
+            loadUsersFromDb(null);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to delete user: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
@@ -322,17 +339,22 @@ public class AdminPage extends InternalPageFrame {
         mainPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTableBookings = new javax.swing.JTable();
-        HEADER = new javax.swing.JPanel();
-        HEADERTEXT = new javax.swing.JLabel();
         EditUserPanel = new javax.swing.JPanel();
         EditUserText = new javax.swing.JLabel();
+        EditUserIcon = new javax.swing.JLabel();
+        Search = new javax.swing.JTextField();
         AddUserPanel = new javax.swing.JPanel();
         AddUserText = new javax.swing.JLabel();
+        AddUserIcon = new javax.swing.JLabel();
         RemoveUserPanel = new javax.swing.JPanel();
         RemoveUserText = new javax.swing.JLabel();
-        Search = new javax.swing.JTextField();
+        RemoveUserIcon = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jLabel1 = new javax.swing.JLabel();
 
-        mainPanel.setBackground(new java.awt.Color(153, 153, 153));
+        setPreferredSize(new java.awt.Dimension(790, 415));
+
+        mainPanel.setBackground(new java.awt.Color(204, 204, 255));
         mainPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         javax.swing.GroupLayout jScrollPane1Layout = new javax.swing.GroupLayout(jScrollPane1.getViewport());
@@ -346,122 +368,119 @@ public class AdminPage extends InternalPageFrame {
             .addComponent(jTableBookings, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 100, 780, 360));
+        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 580, 320));
 
-        HEADER.setBackground(new java.awt.Color(102, 102, 102));
-
-        HEADERTEXT.setBackground(new java.awt.Color(102, 102, 102));
-        HEADERTEXT.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        HEADERTEXT.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        HEADERTEXT.setText("ADMINISTRATOR PAGE");
-
-        javax.swing.GroupLayout HEADERLayout = new javax.swing.GroupLayout(HEADER);
-        HEADER.setLayout(HEADERLayout);
-        HEADERLayout.setHorizontalGroup(
-            HEADERLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(HEADERTEXT, javax.swing.GroupLayout.DEFAULT_SIZE, 800, Short.MAX_VALUE)
-        );
-        HEADERLayout.setVerticalGroup(
-            HEADERLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(HEADERLayout.createSequentialGroup()
-                .addComponent(HEADERTEXT, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-
-        mainPanel.add(HEADER, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 800, 30));
-
-        EditUserPanel.setBackground(new java.awt.Color(102, 102, 102));
-        EditUserPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        EditUserPanel.setBackground(new java.awt.Color(204, 204, 255));
 
         EditUserText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        EditUserText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         EditUserText.setText("EDIT USER");
+
+        EditUserIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        EditUserIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-edit-profile-48.png"))); // NOI18N
 
         javax.swing.GroupLayout EditUserPanelLayout = new javax.swing.GroupLayout(EditUserPanel);
         EditUserPanel.setLayout(EditUserPanelLayout);
         EditUserPanelLayout.setHorizontalGroup(
             EditUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EditUserPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(EditUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(EditUserIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(EditUserText, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE))
         );
         EditUserPanelLayout.setVerticalGroup(
             EditUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EditUserPanelLayout.createSequentialGroup()
+            .addGroup(EditUserPanelLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(EditUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(EditUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(EditUserText, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(EditUserIcon, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
-        mainPanel.add(EditUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, -1, 30));
+        mainPanel.add(EditUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 160, 60));
 
-        AddUserPanel.setBackground(new java.awt.Color(102, 102, 102));
-        AddUserPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        Search.setBackground(new java.awt.Color(204, 204, 255));
+        Search.setForeground(new java.awt.Color(255, 255, 255));
+        Search.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        Search.setText("Enter user ID to search");
+        Search.setBorder(null);
+        Search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SearchActionPerformed(evt);
+            }
+        });
+        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 20, 220, 30));
+
+        AddUserPanel.setBackground(new java.awt.Color(204, 204, 255));
 
         AddUserText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        AddUserText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         AddUserText.setText("ADD USER");
+
+        AddUserIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AddUserIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-add-user-group-woman-man-48.png"))); // NOI18N
 
         javax.swing.GroupLayout AddUserPanelLayout = new javax.swing.GroupLayout(AddUserPanel);
         AddUserPanel.setLayout(AddUserPanelLayout);
         AddUserPanelLayout.setHorizontalGroup(
             AddUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(AddUserPanelLayout.createSequentialGroup()
-                .addComponent(AddUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, AddUserPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(AddUserIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(AddUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         AddUserPanelLayout.setVerticalGroup(
             AddUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, AddUserPanelLayout.createSequentialGroup()
+            .addGroup(AddUserPanelLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(AddUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(AddUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(AddUserText, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(AddUserIcon, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
-        mainPanel.add(AddUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, 110, -1));
+        mainPanel.add(AddUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 10, -1, -1));
 
-        RemoveUserPanel.setBackground(new java.awt.Color(102, 102, 102));
-        RemoveUserPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        RemoveUserPanel.setBackground(new java.awt.Color(204, 204, 255));
 
         RemoveUserText.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        RemoveUserText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         RemoveUserText.setText("REMOVE USER");
+
+        RemoveUserIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        RemoveUserIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-remove-user-48.png"))); // NOI18N
 
         javax.swing.GroupLayout RemoveUserPanelLayout = new javax.swing.GroupLayout(RemoveUserPanel);
         RemoveUserPanel.setLayout(RemoveUserPanelLayout);
         RemoveUserPanelLayout.setHorizontalGroup(
             RemoveUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, RemoveUserPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(RemoveUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(RemoveUserIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 68, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(RemoveUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         RemoveUserPanelLayout.setVerticalGroup(
             RemoveUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, RemoveUserPanelLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(RemoveUserText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(RemoveUserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(RemoveUserIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE)
+                    .addComponent(RemoveUserText, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 
-        mainPanel.add(RemoveUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 50, -1, -1));
+        mainPanel.add(RemoveUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 10, -1, -1));
+        mainPanel.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 50, 220, 10));
 
-        Search.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                SearchActionPerformed(evt);
-            }
-        });
-        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 50, 200, 30));
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Logo with Blue and Grey Color Theme.png"))); // NOI18N
+        mainPanel.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 80, 150, 300));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(mainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 800, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(mainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 470, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 415, Short.MAX_VALUE)
         );
 
         pack();
@@ -472,16 +491,19 @@ public class AdminPage extends InternalPageFrame {
     }//GEN-LAST:event_SearchActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel AddUserIcon;
     private javax.swing.JPanel AddUserPanel;
     private javax.swing.JLabel AddUserText;
+    private javax.swing.JLabel EditUserIcon;
     private javax.swing.JPanel EditUserPanel;
     private javax.swing.JLabel EditUserText;
-    private javax.swing.JPanel HEADER;
-    private javax.swing.JLabel HEADERTEXT;
+    private javax.swing.JLabel RemoveUserIcon;
     private javax.swing.JPanel RemoveUserPanel;
     private javax.swing.JLabel RemoveUserText;
     private javax.swing.JTextField Search;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable jTableBookings;
     private javax.swing.JPanel mainPanel;
     // End of variables declaration//GEN-END:variables
