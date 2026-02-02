@@ -28,7 +28,7 @@ public class Bookings extends InternalPageFrame {
     
     private final DefaultTableModel tableModel;
     private final List<Integer> bookingIds = new ArrayList<>();
-    private static final String[] STATUS_OPTIONS = {"In-Transit", "Stopped", "Arrived"};
+    private static final String[] STATUS_OPTIONS = {"Pending", "In-Transit", "Stopped", "Arrived", "Cancelled"};
     private static final String[] BOOKING_COLUMNS = {"ID", "Passenger", "Route", "Date", "Seat", "Status"};
 
     public Bookings() {
@@ -118,6 +118,57 @@ public class Bookings extends InternalPageFrame {
                 performUpdateStatus();
             }
         });
+
+        // Add View Receipts panel programmatically
+        setupViewReceiptsPanel(handCursor);
+    }
+
+    private javax.swing.JPanel ViewReceiptsPanel;
+
+    private void setupViewReceiptsPanel(Cursor handCursor) {
+        ViewReceiptsPanel = new javax.swing.JPanel();
+        ViewReceiptsPanel.setBackground(bodycolor);
+        ViewReceiptsPanel.setCursor(handCursor);
+        
+        javax.swing.JLabel receiptText = new javax.swing.JLabel("RECEIPTS");
+        receiptText.setFont(new java.awt.Font("Tahoma", 1, 11));
+        receiptText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        
+        javax.swing.JLabel receiptIcon = new javax.swing.JLabel();
+        receiptIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        receiptIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-booking-48.png")));
+        
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(ViewReceiptsPanel);
+        ViewReceiptsPanel.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(receiptText, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+            .addComponent(receiptIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(receiptIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(receiptText))
+        );
+        
+        mainPanel.add(ViewReceiptsPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 250, 80, 70));
+        
+        ViewReceiptsPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                performViewAllReceipts();
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                ViewReceiptsPanel.setBackground(navcolor);
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                ViewReceiptsPanel.setBackground(bodycolor);
+            }
+        });
     }
 
     private void performEdit() {
@@ -192,6 +243,44 @@ public class Bookings extends InternalPageFrame {
                 ConnectionConfig.close(conn);
             }
         }
+    }
+
+    private void performViewAllReceipts() {
+        Connection conn = null;
+        try {
+            conn = ConnectionConfig.getConnection();
+            javax.swing.table.DefaultTableModel tm = new javax.swing.table.DefaultTableModel(
+                    new String[]{"Receipt ID", "Username", "Booking ID", "Origin", "Destination", "Seat", "Date"}, 0);
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT r_id, username, b_id, origin, destination, seat, date FROM receipts ORDER BY r_id DESC")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        tm.addRow(new Object[]{
+                                rs.getInt("r_id"),
+                                nullToEmpty(rs.getString("username")),
+                                rs.getInt("b_id"),
+                                nullToEmpty(rs.getString("origin")),
+                                nullToEmpty(rs.getString("destination")),
+                                nullToEmpty(rs.getString("seat")),
+                                nullToEmpty(rs.getString("date"))
+                        });
+                    }
+                }
+            }
+            javax.swing.JTable table = new javax.swing.JTable(tm);
+            table.setEnabled(false);
+            javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(table);
+            scroll.setPreferredSize(new java.awt.Dimension(600, 350));
+            JOptionPane.showMessageDialog(this, scroll, "All Receipts", JOptionPane.PLAIN_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to load receipts: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            ConnectionConfig.close(conn);
+        }
+    }
+
+    private static String nullToEmpty(String s) {
+        return s == null ? "" : s;
     }
 
     private void performUpdateStatus() {
