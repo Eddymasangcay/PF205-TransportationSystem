@@ -1,7 +1,6 @@
 package AdminInternalPages;
 
 import Configuration.ConnectionConfig;
-import Configuration.ReceiptUtil;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.GridLayout;
