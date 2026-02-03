@@ -27,10 +27,12 @@ public class AdminSettings extends InternalPageFrame {
     private final DefaultTableModel tableModel;
     private final List<Integer> userIds = new ArrayList<>();
     private static final String[] USER_COLUMNS = {"ID", "Username", "Email", "Name"};
+    private final int currentUserId;
 
     private javax.swing.JPanel LogoutPanel;
 
-    public AdminSettings() {
+    public AdminSettings(int currentUserId) {
+        this.currentUserId = currentUserId;
         initComponents();
         tableModel = (DefaultTableModel) jTableBookings.getModel();
         tableModel.setColumnIdentifiers(USER_COLUMNS);
@@ -38,6 +40,11 @@ public class AdminSettings extends InternalPageFrame {
         setupPanelListeners();
         setupSearchByID();
         loadUsersFromDb(null);
+        loadLoggedInUserDetails();
+    }
+
+    private static String nullToEmpty(String s) {
+        return s == null ? "" : s;
     }
 
     private void loadUsersFromDb(Integer filterById) {
@@ -69,6 +76,34 @@ public class AdminSettings extends InternalPageFrame {
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to load users: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            ConnectionConfig.close(conn);
+        }
+    }
+
+    private void loadLoggedInUserDetails() {
+        Connection conn = null;
+        try {
+            conn = ConnectionConfig.getConnection();
+            String sql = "SELECT u_id, username, email, name FROM users WHERE u_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, currentUserId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        int id = rs.getInt("u_id");
+                        String username = nullToEmpty(rs.getString("username"));
+                        String email = nullToEmpty(rs.getString("email"));
+                        String name = nullToEmpty(rs.getString("name"));
+
+                        UserID.setText("User ID: " + id);
+                        UserName.setText("Username: " + username);
+                        Name.setText("Name: " + name);
+                        Email.setText("Email: " + email);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to load current user info: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
             ConnectionConfig.close(conn);
         }
@@ -350,7 +385,13 @@ public class AdminSettings extends InternalPageFrame {
         RemoveUserText = new javax.swing.JLabel();
         RemoveUserIcon = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
-        jLabel1 = new javax.swing.JLabel();
+        UserOutPanel = new javax.swing.JPanel();
+        UserPanel = new javax.swing.JPanel();
+        UserIcon = new javax.swing.JLabel();
+        UserName = new javax.swing.JLabel();
+        Name = new javax.swing.JLabel();
+        UserID = new javax.swing.JLabel();
+        Email = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(790, 415));
 
@@ -368,7 +409,7 @@ public class AdminSettings extends InternalPageFrame {
             .addComponent(jTableBookings, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 580, 290));
+        mainPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 70, 510, 320));
 
         EditUserPanel.setBackground(new java.awt.Color(204, 204, 255));
 
@@ -408,7 +449,7 @@ public class AdminSettings extends InternalPageFrame {
                 SearchActionPerformed(evt);
             }
         });
-        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 20, 220, 30));
+        mainPanel.add(Search, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 10, 220, 30));
 
         AddUserPanel.setBackground(new java.awt.Color(204, 204, 255));
 
@@ -466,11 +507,64 @@ public class AdminSettings extends InternalPageFrame {
         );
 
         mainPanel.add(RemoveUserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 10, -1, -1));
-        mainPanel.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 50, 220, 10));
+        mainPanel.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 40, 220, 20));
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Logo with Blue and Grey Color Theme.png"))); // NOI18N
-        mainPanel.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 80, 150, 300));
+        UserOutPanel.setBackground(new java.awt.Color(153, 153, 255));
+
+        UserPanel.setBackground(new java.awt.Color(102, 102, 255));
+
+        UserIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        UserIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-profile-100.png"))); // NOI18N
+
+        javax.swing.GroupLayout UserPanelLayout = new javax.swing.GroupLayout(UserPanel);
+        UserPanel.setLayout(UserPanelLayout);
+        UserPanelLayout.setHorizontalGroup(
+            UserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(UserIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
+        );
+        UserPanelLayout.setVerticalGroup(
+            UserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(UserIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
+        );
+
+        UserName.setText("Username:");
+
+        Name.setText("Name:");
+
+        UserID.setText("User ID:");
+
+        Email.setText("Email:");
+
+        javax.swing.GroupLayout UserOutPanelLayout = new javax.swing.GroupLayout(UserOutPanel);
+        UserOutPanel.setLayout(UserOutPanelLayout);
+        UserOutPanelLayout.setHorizontalGroup(
+            UserOutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(UserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(UserOutPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(UserOutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(UserName)
+                    .addComponent(Name)
+                    .addComponent(UserID)
+                    .addComponent(Email))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        UserOutPanelLayout.setVerticalGroup(
+            UserOutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(UserOutPanelLayout.createSequentialGroup()
+                .addComponent(UserPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(UserName)
+                .addGap(18, 18, 18)
+                .addComponent(Name)
+                .addGap(19, 19, 19)
+                .addComponent(UserID)
+                .addGap(18, 18, 18)
+                .addComponent(Email)
+                .addContainerGap(64, Short.MAX_VALUE))
+        );
+
+        mainPanel.add(UserOutPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 60, 240, 330));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -497,11 +591,17 @@ public class AdminSettings extends InternalPageFrame {
     private javax.swing.JLabel EditUserIcon;
     private javax.swing.JPanel EditUserPanel;
     private javax.swing.JLabel EditUserText;
+    private javax.swing.JLabel Email;
+    private javax.swing.JLabel Name;
     private javax.swing.JLabel RemoveUserIcon;
     private javax.swing.JPanel RemoveUserPanel;
     private javax.swing.JLabel RemoveUserText;
     private javax.swing.JTextField Search;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel UserID;
+    private javax.swing.JLabel UserIcon;
+    private javax.swing.JLabel UserName;
+    private javax.swing.JPanel UserOutPanel;
+    private javax.swing.JPanel UserPanel;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable jTableBookings;

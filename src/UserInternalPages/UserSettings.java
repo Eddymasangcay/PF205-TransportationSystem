@@ -74,6 +74,23 @@ public class UserSettings extends InternalPageFrame {
         } finally {
             ConnectionConfig.close(conn);
         }
+        updateUserInfoPanel();
+    }
+
+    private void updateUserInfoPanel() {
+        if (tableModel == null || tableModel.getRowCount() == 0) {
+            return;
+        }
+        int row = 0;
+        Object id = tableModel.getValueAt(row, 0);
+        Object username = tableModel.getValueAt(row, 1);
+        Object email = tableModel.getValueAt(row, 2);
+        Object name = tableModel.getValueAt(row, 3);
+    
+        UserIdLabel.setText("User ID: " + String.valueOf(id));
+        UsernameLabel.setText("Username: " + String.valueOf(username));
+        NameLabel.setText("Name: " + String.valueOf(name));
+        EmailLabel.setText("Email: " + String.valueOf(email));
     }
 
     private void setupLogoutPanel() {
@@ -575,8 +592,14 @@ public class UserSettings extends InternalPageFrame {
         ViewReceiptsPanel = new javax.swing.JPanel();
         EditUserIcon1 = new javax.swing.JLabel();
         EditUserText2 = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
         jDesktopPane1 = new javax.swing.JDesktopPane();
+        UserPanel = new javax.swing.JPanel();
+        UserPanel2 = new javax.swing.JPanel();
+        UserIcon1 = new javax.swing.JLabel();
+        UserIdLabel = new javax.swing.JLabel();
+        UsernameLabel = new javax.swing.JLabel();
+        NameLabel = new javax.swing.JLabel();
+        EmailLabel = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(790, 415));
 
@@ -669,10 +692,6 @@ public class UserSettings extends InternalPageFrame {
 
         mainPanel.add(ViewReceiptsPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 170, 180, 60));
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Logo with Blue and Grey Color Theme.png"))); // NOI18N
-        mainPanel.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 330, 150, 80));
-
         javax.swing.GroupLayout jDesktopPane1Layout = new javax.swing.GroupLayout(jDesktopPane1);
         jDesktopPane1.setLayout(jDesktopPane1Layout);
         jDesktopPane1Layout.setHorizontalGroup(
@@ -681,20 +700,77 @@ public class UserSettings extends InternalPageFrame {
         );
         jDesktopPane1Layout.setVerticalGroup(
             jDesktopPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 390, Short.MAX_VALUE)
+            .addGap(0, 200, Short.MAX_VALUE)
         );
 
-        mainPanel.add(jDesktopPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 10, 560, 390));
+        mainPanel.add(jDesktopPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 10, 560, 200));
+
+        UserPanel.setBackground(new java.awt.Color(153, 153, 255));
+
+        UserPanel2.setBackground(new java.awt.Color(102, 102, 255));
+
+        UserIcon1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        UserIcon1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-profile-100.png"))); // NOI18N
+
+        javax.swing.GroupLayout UserPanel2Layout = new javax.swing.GroupLayout(UserPanel2);
+        UserPanel2.setLayout(UserPanel2Layout);
+        UserPanel2Layout.setHorizontalGroup(
+            UserPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(UserIcon1, javax.swing.GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
+        );
+        UserPanel2Layout.setVerticalGroup(
+            UserPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(UserIcon1, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
+        );
+
+        UserIdLabel.setText("User ID:");
+
+        UsernameLabel.setText("Username:");
+
+        NameLabel.setText("Name:");
+
+        EmailLabel.setText("Email:");
+
+        javax.swing.GroupLayout UserPanelLayout = new javax.swing.GroupLayout(UserPanel);
+        UserPanel.setLayout(UserPanelLayout);
+        UserPanelLayout.setHorizontalGroup(
+            UserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(UserPanelLayout.createSequentialGroup()
+                .addComponent(UserPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(UserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(UsernameLabel)
+                    .addComponent(NameLabel)
+                    .addComponent(UserIdLabel)
+                    .addComponent(EmailLabel))
+                .addContainerGap(240, Short.MAX_VALUE))
+        );
+        UserPanelLayout.setVerticalGroup(
+            UserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(UserPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(UserPanelLayout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addComponent(UsernameLabel)
+                .addGap(18, 18, 18)
+                .addComponent(NameLabel)
+                .addGap(18, 18, 18)
+                .addComponent(UserIdLabel)
+                .addGap(18, 18, 18)
+                .addComponent(EmailLabel)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        mainPanel.add(UserPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 230, 560, 170));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 415, Short.MAX_VALUE)
         );
 
         pack();
@@ -709,9 +785,15 @@ public class UserSettings extends InternalPageFrame {
     private javax.swing.JLabel EditUserText;
     private javax.swing.JLabel EditUserText1;
     private javax.swing.JLabel EditUserText2;
+    private javax.swing.JLabel UserIcon1;
+    private javax.swing.JPanel UserPanel;
+    private javax.swing.JPanel UserPanel2;
+    private javax.swing.JLabel UserIdLabel;
+    private javax.swing.JLabel UsernameLabel;
+    private javax.swing.JLabel NameLabel;
+    private javax.swing.JLabel EmailLabel;
     private javax.swing.JPanel ViewReceiptsPanel;
     private javax.swing.JDesktopPane jDesktopPane1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel mainPanel;
     // End of variables declaration//GEN-END:variables
 }

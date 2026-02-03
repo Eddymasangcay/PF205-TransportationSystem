@@ -83,7 +83,7 @@ public class MainPage extends javax.swing.JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (isAdmin) {
-                    openInternalFrame(new AdminSettings());
+                    openInternalFrame(new AdminSettings(currentUserId));
                 } else {
                     openInternalFrame(new UserSettings(currentUserId));
                 }
