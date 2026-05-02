@@ -3,8 +3,13 @@ package UserInternalPages;
 import Configuration.ConnectionConfig;
 import Configuration.PasswordUtil;
 import Main.Mainframe;
+import UI.DocumentDialog;
+import UI.ReceiptCardPanel;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -14,8 +19,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
@@ -261,29 +271,43 @@ public class UserSettings extends InternalPageFrame {
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
-            javax.swing.table.DefaultTableModel tm = new javax.swing.table.DefaultTableModel(
-                    new String[]{"Receipt ID", "Booking ID", "Origin", "Destination", "Seat", "Date"}, 0);
+            JPanel listPanel = new JPanel();
+            listPanel.setOpaque(false);
+            listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+            listPanel.setBorder(BorderFactory.createEmptyBorder(4, 4, 12, 4));
+
+            boolean any = false;
             try (PreparedStatement ps = conn.prepareStatement(
                     "SELECT r_id, b_id, origin, destination, seat, date FROM receipts WHERE u_id = ? ORDER BY r_id DESC")) {
                 ps.setInt(1, currentUserId);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        tm.addRow(new Object[]{
+                        any = true;
+                        ReceiptCardPanel card = new ReceiptCardPanel(
                                 rs.getInt("r_id"),
                                 rs.getInt("b_id"),
                                 nullToEmpty(rs.getString("origin")),
                                 nullToEmpty(rs.getString("destination")),
                                 nullToEmpty(rs.getString("seat")),
-                                nullToEmpty(rs.getString("date"))
-                        });
+                                nullToEmpty(rs.getString("date")),
+                                null);
+                        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+                        listPanel.add(card);
+                        listPanel.add(Box.createVerticalStrut(14));
                     }
                 }
             }
-            javax.swing.JTable table = new javax.swing.JTable(tm);
-            table.setEnabled(false);
-            javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(table);
-            scroll.setPreferredSize(new java.awt.Dimension(500, 300));
-            JOptionPane.showMessageDialog(this, scroll, "My Receipts", JOptionPane.PLAIN_MESSAGE);
+            if (!any) {
+                JPanel emptyWrap = new JPanel(new BorderLayout());
+                emptyWrap.setOpaque(false);
+                JLabel empty = new JLabel("No receipts yet.", SwingConstants.CENTER);
+                empty.setFont(empty.getFont().deriveFont(Font.PLAIN, 14f));
+                empty.setForeground(new Color(80, 80, 110));
+                empty.setBorder(BorderFactory.createEmptyBorder(48, 24, 48, 24));
+                emptyWrap.add(empty, BorderLayout.CENTER);
+                listPanel.add(emptyWrap);
+            }
+            DocumentDialog.show(this, "My Receipts", listPanel, 540, 460);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to load receipts: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {

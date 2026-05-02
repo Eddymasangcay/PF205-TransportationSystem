@@ -2,8 +2,14 @@ package AdminInternalPages;
 
 import Configuration.ConnectionConfig;
 import Configuration.ReceiptUtil;
+import UI.DocumentDialog;
+import UI.ReceiptCardPanel;
+import UI.TicketCardPanel;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -13,8 +19,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -121,9 +132,11 @@ public class Bookings extends InternalPageFrame {
 
         // Add View Receipts panel programmatically
         setupViewReceiptsPanel(handCursor);
+        setupViewTicketPanel(handCursor);
     }
 
     private javax.swing.JPanel ViewReceiptsPanel;
+    private javax.swing.JPanel ViewTicketPanel;
 
     private void setupViewReceiptsPanel(Cursor handCursor) {
         ViewReceiptsPanel = new javax.swing.JPanel();
@@ -169,6 +182,97 @@ public class Bookings extends InternalPageFrame {
                 ViewReceiptsPanel.setBackground(bodycolor);
             }
         });
+    }
+
+    private void setupViewTicketPanel(Cursor handCursor) {
+        ViewTicketPanel = new javax.swing.JPanel();
+        ViewTicketPanel.setBackground(bodycolor);
+        ViewTicketPanel.setCursor(handCursor);
+
+        javax.swing.JLabel ticketText = new javax.swing.JLabel("TICKET");
+        ticketText.setFont(new java.awt.Font("Tahoma", 1, 11));
+        ticketText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
+        javax.swing.JLabel ticketIcon = new javax.swing.JLabel();
+        ticketIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        ticketIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/icons8-public-transportation-48.png")));
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(ViewTicketPanel);
+        ViewTicketPanel.setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(ticketText, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+                        .addComponent(ticketIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE));
+        layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(ticketIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(ticketText)));
+
+        mainPanel.add(ViewTicketPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 328, 80, 70));
+
+        ViewTicketPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                performViewTicket();
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                ViewTicketPanel.setBackground(navcolor);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                ViewTicketPanel.setBackground(bodycolor);
+            }
+        });
+    }
+
+    private void performViewTicket() {
+        int row = jTableBookings.getSelectedRow();
+        if (row < 0 || row >= tableModel.getRowCount()) {
+            JOptionPane.showMessageDialog(this, "Please select a booking to view the ticket.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int bookingId = (Integer) tableModel.getValueAt(row, 0);
+        Connection conn = null;
+        try {
+            conn = ConnectionConfig.getConnection();
+            String passenger = "", route = "", date = "", seat = "", status = "", vehicleType = "";
+            int price = 0;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT b.passenger, b.route, b.date, b.seat, b.status, b.v_type, COALESCE(r.v_price, 0) AS price "
+                            + "FROM bookings b LEFT JOIN routes r ON b.v_id = r.v_id WHERE b.b_id = ?")) {
+                ps.setInt(1, bookingId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        passenger = nullToEmpty(rs.getString("passenger"));
+                        route = nullToEmpty(rs.getString("route"));
+                        date = nullToEmpty(rs.getString("date"));
+                        seat = nullToEmpty(rs.getString("seat"));
+                        status = nullToEmpty(rs.getString("status"));
+                        vehicleType = nullToEmpty(rs.getString("v_type"));
+                        price = rs.getInt("price");
+                    }
+                }
+            }
+            TicketCardPanel ticket = new TicketCardPanel(
+                    bookingId,
+                    passenger,
+                    route,
+                    seat.isEmpty() ? "" : seat,
+                    date,
+                    status.isEmpty() ? "Pending" : status,
+                    vehicleType,
+                    price);
+            DocumentDialog.show(this, "Boarding pass", ticket, 720, 420);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to load booking for ticket: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            ConnectionConfig.close(conn);
+        }
     }
 
     private void performEdit() {
@@ -249,29 +353,42 @@ public class Bookings extends InternalPageFrame {
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
-            javax.swing.table.DefaultTableModel tm = new javax.swing.table.DefaultTableModel(
-                    new String[]{"Receipt ID", "Username", "Booking ID", "Origin", "Destination", "Seat", "Date"}, 0);
+            JPanel listPanel = new JPanel();
+            listPanel.setOpaque(false);
+            listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+            listPanel.setBorder(BorderFactory.createEmptyBorder(4, 4, 12, 4));
+
+            boolean any = false;
             try (PreparedStatement ps = conn.prepareStatement(
                     "SELECT r_id, username, b_id, origin, destination, seat, date FROM receipts ORDER BY r_id DESC")) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        tm.addRow(new Object[]{
+                        any = true;
+                        ReceiptCardPanel card = new ReceiptCardPanel(
                                 rs.getInt("r_id"),
-                                nullToEmpty(rs.getString("username")),
                                 rs.getInt("b_id"),
                                 nullToEmpty(rs.getString("origin")),
                                 nullToEmpty(rs.getString("destination")),
                                 nullToEmpty(rs.getString("seat")),
-                                nullToEmpty(rs.getString("date"))
-                        });
+                                nullToEmpty(rs.getString("date")),
+                                nullToEmpty(rs.getString("username")));
+                        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+                        listPanel.add(card);
+                        listPanel.add(Box.createVerticalStrut(14));
                     }
                 }
             }
-            javax.swing.JTable table = new javax.swing.JTable(tm);
-            table.setEnabled(false);
-            javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(table);
-            scroll.setPreferredSize(new java.awt.Dimension(600, 350));
-            JOptionPane.showMessageDialog(this, scroll, "All Receipts", JOptionPane.PLAIN_MESSAGE);
+            if (!any) {
+                JPanel emptyWrap = new JPanel(new BorderLayout());
+                emptyWrap.setOpaque(false);
+                JLabel empty = new JLabel("No receipts yet.", SwingConstants.CENTER);
+                empty.setFont(empty.getFont().deriveFont(Font.PLAIN, 14f));
+                empty.setForeground(new Color(80, 80, 110));
+                empty.setBorder(BorderFactory.createEmptyBorder(48, 24, 48, 24));
+                emptyWrap.add(empty, BorderLayout.CENTER);
+                listPanel.add(emptyWrap);
+            }
+            DocumentDialog.show(this, "All Receipts", listPanel, 580, 480);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to load receipts: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {

@@ -1,9 +1,10 @@
 package UserInternalPages;
 
 import Configuration.ConnectionConfig;
+import UI.DocumentDialog;
+import UI.TicketCardPanel;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
@@ -141,22 +142,16 @@ public class UserBookings extends InternalPageFrame {
                     }
                 }
             }
-            JPanel panel = new JPanel(new GridLayout(7, 2, 5, 5));
-            panel.add(new javax.swing.JLabel("Booking ID:"));
-            panel.add(new javax.swing.JLabel(String.valueOf(bookingId)));
-            panel.add(new javax.swing.JLabel("Passenger:"));
-            panel.add(new javax.swing.JLabel(passenger));
-            panel.add(new javax.swing.JLabel("Vehicle Type:"));
-            panel.add(new javax.swing.JLabel(vehicleType));
-            panel.add(new javax.swing.JLabel("Route:"));
-            panel.add(new javax.swing.JLabel(route));
-            panel.add(new javax.swing.JLabel("Seat:"));
-            panel.add(new javax.swing.JLabel(seat.isEmpty() ? "N/A" : seat));
-            panel.add(new javax.swing.JLabel("Price:"));
-            panel.add(new javax.swing.JLabel(price + ""));
-            panel.add(new javax.swing.JLabel("Status:"));
-            panel.add(new javax.swing.JLabel(status));
-            JOptionPane.showMessageDialog(this, panel, "Booking Details", JOptionPane.PLAIN_MESSAGE);
+            TicketCardPanel ticket = new TicketCardPanel(
+                    bookingId,
+                    passenger,
+                    route,
+                    seat.isEmpty() ? "" : seat,
+                    date,
+                    status.isEmpty() ? "Pending" : status,
+                    vehicleType,
+                    price);
+            DocumentDialog.show(this, "Boarding pass", ticket, 720, 420);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to load booking details: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {

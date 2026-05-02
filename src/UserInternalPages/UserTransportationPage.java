@@ -1,6 +1,8 @@
 package UserInternalPages;
 
 import Configuration.ConnectionConfig;
+import UI.DocumentDialog;
+import UI.TicketCardPanel;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.GridLayout;
@@ -10,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
@@ -164,8 +167,10 @@ public class UserTransportationPage extends InternalPageFrame {
         Connection conn = null;
         try {
             conn = ConnectionConfig.getConnection();
+            int bookingId = -1;
             try (PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO bookings (passenger, passenger_id, v_type, v_id, route, seat, status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')")) {
+                    "INSERT INTO bookings (passenger, passenger_id, v_type, v_id, route, seat, status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')",
+                    Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, currentUserName);
                 ps.setInt(2, currentUserId);
                 ps.setString(3, vehicleType);
@@ -173,8 +178,52 @@ public class UserTransportationPage extends InternalPageFrame {
                 ps.setString(5, routeDisplay);
                 ps.setString(6, seat);
                 ps.executeUpdate();
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        bookingId = keys.getInt(1);
+                    }
+                }
             }
-            JOptionPane.showMessageDialog(this, "Booking created successfully.", "Book", JOptionPane.INFORMATION_MESSAGE);
+            if (bookingId <= 0) {
+                try (PreparedStatement rid = conn.prepareStatement("SELECT last_insert_rowid()");
+                     ResultSet rs = rid.executeQuery()) {
+                    if (rs.next()) {
+                        bookingId = rs.getInt(1);
+                    }
+                }
+            }
+            if (bookingId <= 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Booking may have been saved but the ticket could not be displayed (missing booking id).",
+                        "Book",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            String bookedDate = "";
+            String status = "Pending";
+            try (PreparedStatement sel = conn.prepareStatement(
+                    "SELECT date, status FROM bookings WHERE b_id = ?")) {
+                sel.setInt(1, bookingId);
+                try (ResultSet rs = sel.executeQuery()) {
+                    if (rs.next()) {
+                        bookedDate = nullToEmpty(rs.getString("date"));
+                        status = nullToEmpty(rs.getString("status"));
+                        if (status.isEmpty()) {
+                            status = "Pending";
+                        }
+                    }
+                }
+            }
+            TicketCardPanel ticket = new TicketCardPanel(
+                    bookingId,
+                    nullToEmpty(currentUserName),
+                    routeDisplay,
+                    seat,
+                    bookedDate,
+                    status,
+                    vehicleType,
+                    price);
+            DocumentDialog.show(this, "Boarding pass", ticket, 720, 420);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to create booking: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
