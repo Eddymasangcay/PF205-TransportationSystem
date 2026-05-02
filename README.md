@@ -1,4 +1,4 @@
-# PF205 Transportation System
+# United Transportation System
 
 <div align="center">
 
@@ -14,7 +14,7 @@
 ## Overview
 
 
-**PF205 Transportation System** is a desktop academic project built with **Java Swing**. It supports everyday transportation booking workflows for **passengers (users)** and **administrators** in one application: managing routes, creating and tracking bookings, updating trip status, and viewing trip documents.
+**United Transportation System** is a desktop academic project built with **Java Swing**. It supports everyday transportation booking workflows for **passengers (users)** and **administrators** in one application: managing routes, creating and tracking bookings, updating trip status, and viewing trip documents.
 
 **Customers** can browse available routes, book seats, manage their bookings, and view a **boarding-pass style ticket** after booking or from their booking list.
 
